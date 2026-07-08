@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: agriconnect-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-your_password}
+      MYSQL_DATABASE: agriconnect_db
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - agriconnect-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agriconnect-backend
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      DB_URL: jdbc:mysql://mysql:3306/agriconnect_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-your_password}
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      JPA_DIALECT: org.hibernate.dialect.MySQLDialect
+      JWT_SECRET: ${JWT_SECRET:-ChangeThisSecretToAStrongValueWithAtLeast32Characters}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-120}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ADMIN_DEFAULT_EMAIL: ${ADMIN_DEFAULT_EMAIL:-admin@agriconnect.local}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-Admin@12345}
+      JPA_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - agriconnect-network
+
+  frontend:
+    image: node:20-alpine
+    container_name: agriconnect-frontend
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - agriconnect-network
+
+volumes:
+  mysql-data:
+
+networks:
+  agriconnect-network:
+    driver: bridge

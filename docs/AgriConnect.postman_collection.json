@@ -1,0 +1,714 @@
+{
+  "info": {
+    "name": "AgriConnect API",
+    "description": "Complete API collection for AgriConnect Agriculture Management Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Farmer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Farmer\",\n  \"email\": \"farmer@agriconnect.local\",\n  \"password\": \"Farmer@123\",\n  \"phone\": \"+15551234567\",\n  \"role\": \"FARMER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register (Equipment Owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Sarah Owner\",\n  \"email\": \"owner@agriconnect.local\",\n  \"password\": \"Owner@123\",\n  \"phone\": \"+15559876543\",\n  \"role\": \"EQUIPMENT_OWNER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register (Worker)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Mike Worker\",\n  \"email\": \"worker@agriconnect.local\",\n  \"password\": \"Worker@123\",\n  \"phone\": \"+15555555555\",\n  \"role\": \"WORKER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.data) {",
+                  "  pm.collectionVariables.set('access_token', response.data.accessToken);",
+                  "  pm.collectionVariables.set('refresh_token', response.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@agriconnect.local\",\n  \"password\": \"Admin@12345\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer@agriconnect.local\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "forgot-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"phone\": \"+15550000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@12345\",\n  \"newPassword\": \"NewPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Equipment",
+      "item": [
+        {
+          "name": "List Equipment",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/equipment?search=&category=&location=&available=true&page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "category", "value": "" },
+                { "key": "location", "value": "" },
+                { "key": "available", "value": "true" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Equipment Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/equipment/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Equipment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Deere Tractor\",\n  \"category\": \"Tractor\",\n  \"description\": \"Well-maintained John Deere 5055E tractor for rent\",\n  \"rentalPricePerDay\": 250.00,\n  \"securityDeposit\": 500.00,\n  \"location\": \"Farmville, IA\",\n  \"brand\": \"John Deere\",\n  \"model\": \"5055E\",\n  \"yearOfManufacture\": \"2022\",\n  \"available\": true,\n  \"imageUrls\": [\"https://example.com/tractor1.jpg\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/equipment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment"]
+            }
+          }
+        },
+        {
+          "name": "Update Equipment",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Deere Tractor Updated\",\n  \"category\": \"Tractor\",\n  \"description\": \"Updated description\",\n  \"rentalPricePerDay\": 275.00,\n  \"securityDeposit\": 500.00,\n  \"location\": \"Farmville, IA\",\n  \"brand\": \"John Deere\",\n  \"model\": \"5055E\",\n  \"yearOfManufacture\": \"2022\",\n  \"available\": true,\n  \"imageUrls\": [\"https://example.com/tractor1.jpg\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/equipment/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Equipment",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/equipment/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "1"]
+            }
+          }
+        },
+        {
+          "name": "Book Equipment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": 1,\n  \"bookingDate\": \"2026-07-15\",\n  \"returnDate\": \"2026-07-18\",\n  \"notes\": \"Need for harvesting\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/equipment/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "My Bookings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/equipment/bookings/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "bookings", "my"]
+            }
+          }
+        },
+        {
+          "name": "Owner Bookings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/equipment/bookings/owner",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "bookings", "owner"]
+            }
+          }
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"notes\": \"Booking confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/equipment/bookings/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "bookings", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Add Equipment Review",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Great equipment, well maintained\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/equipment/1/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "1", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Equipment Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/equipment/1/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "equipment", "1", "reviews"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workers",
+      "item": [
+        {
+          "name": "List Workers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/workers?search=&location=&available=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "location", "value": "" },
+                { "key": "available", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Worker Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/workers/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create/Update Worker Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skills\": \"Harvesting, Irrigation, Pest Control\",\n  \"location\": \"Farmville, IA\",\n  \"dailyRate\": 120.00,\n  \"bio\": \"Experienced farm worker with 10 years in agriculture\",\n  \"available\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workers/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "me"]
+            }
+          }
+        },
+        {
+          "name": "Hire Worker",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workerProfileId\": 1,\n  \"startDate\": \"2026-07-20\",\n  \"endDate\": \"2026-07-25\",\n  \"notes\": \"Need help with harvesting corn\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workers/hiring",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "hiring"]
+            }
+          }
+        },
+        {
+          "name": "My Hiring Requests (Worker)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/workers/hiring/worker",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "hiring", "worker"]
+            }
+          }
+        },
+        {
+          "name": "My Hiring Requests (Farmer)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/workers/hiring/farmer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "hiring", "farmer"]
+            }
+          }
+        },
+        {
+          "name": "Update Hiring Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\",\n  \"notes\": \"Happy to help\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workers/hiring/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "hiring", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Add Worker Review",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent worker, very professional\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workers/1/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "1", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Worker Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/workers/1/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workers", "1", "reviews"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Crop Prediction",
+      "item": [
+        {
+          "name": "Predict Crop",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropName\": \"Wheat\",\n  \"areaHectares\": 5.0,\n  \"soilType\": \"Loamy\",\n  \"waterSource\": \"Canal\",\n  \"region\": \"Punjab\",\n  \"investmentAmount\": 50000.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/predictions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "predictions"]
+            }
+          }
+        },
+        {
+          "name": "Prediction History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/predictions/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "predictions", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "item": [
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"SUGGESTION\",\n  \"subject\": \"Add more categories\",\n  \"message\": \"Please add irrigation equipment category\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "My Feedback",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/feedback/my",
+              "host": ["{{base_url}}"],
+              "path": ["api", "feedback", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/notifications/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/2/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "2", "status"]
+            }
+          }
+        },
+        {
+          "name": "List Equipment (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/equipment?status=PENDING",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "equipment"],
+              "query": [{ "key": "status", "value": "PENDING" }]
+            }
+          }
+        },
+        {
+          "name": "Approve/Reject Equipment",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/equipment/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "equipment", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "List Workers (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/workers?status=PENDING",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "workers"],
+              "query": [{ "key": "status", "value": "PENDING" }]
+            }
+          }
+        },
+        {
+          "name": "Approve/Reject Worker",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/workers/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "workers", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "List Feedback (Admin)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/feedback?status=OPEN",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "feedback"],
+              "query": [{ "key": "status", "value": "OPEN" }]
+            }
+          }
+        },
+        {
+          "name": "Update Feedback Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"adminResolution\": \"Looking into this request\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/feedback/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "feedback", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
