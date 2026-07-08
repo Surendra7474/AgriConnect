@@ -1,0 +1,14 @@
+**/target/
+**/node_modules/
+**/.git/
+**/.gitignore
+**/.env
+**/.vscode/
+**/.idea/
+**/*.md
+**/docs/
+**/.github/
+**/uploads/
+**/test/
+frontend/dist/
+backend/*.bat

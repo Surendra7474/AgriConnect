@@ -16,7 +16,6 @@ backend/uploads/
 !mvnw.cmd
 .mvn/
 frontend/public/vite.svg
-render.yaml
 query
 backend/test_api.bat
 backend/run_backend.bat

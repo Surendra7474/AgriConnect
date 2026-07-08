@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mysql:
     image: mysql:8.0
@@ -11,7 +9,7 @@ services:
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -29,22 +27,22 @@ services:
       dockerfile: Dockerfile
     container_name: agriconnect-backend
     restart: unless-stopped
+    ports:
+      - "8080:8080"
     environment:
-      PORT: 8080
+      PORT: "8080"
       DB_URL: jdbc:mysql://mysql:3306/agriconnect_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD:-your_password}
       DB_DRIVER: com.mysql.cj.jdbc.Driver
       JPA_DIALECT: org.hibernate.dialect.MySQLDialect
+      JPA_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET:-ChangeThisSecretToAStrongValueWithAtLeast32Characters}
       JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-120}
       JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       ADMIN_DEFAULT_EMAIL: ${ADMIN_DEFAULT_EMAIL:-admin@agriconnect.local}
       ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-Admin@12345}
-      JPA_DDL_AUTO: update
-    ports:
-      - "8080:8080"
     depends_on:
       mysql:
         condition: service_healthy
@@ -52,18 +50,15 @@ services:
       - agriconnect-network
 
   frontend:
-    image: node:20-alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     container_name: agriconnect-frontend
     restart: unless-stopped
-    working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     ports:
-      - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:8080
+      - "3000:80"
     depends_on:
       - backend
     networks:

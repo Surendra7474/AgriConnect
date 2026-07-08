@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: agriconnect-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    plan: free
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DRIVER
+        value: com.mysql.cj.jdbc.Driver
+      - key: JPA_DIALECT
+        value: org.hibernate.dialect.MySQLDialect
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_ACCESS_MINUTES
+        value: "120"
+      - key: JWT_REFRESH_DAYS
+        value: "14"
+      - key: FRONTEND_URL
+        sync: false
+      - key: ADMIN_DEFAULT_EMAIL
+        sync: false
+      - key: ADMIN_DEFAULT_PASSWORD
+        sync: false
