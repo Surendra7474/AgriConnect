@@ -22,20 +22,11 @@ services:
       - key: JWT_REFRESH_DAYS
         value: "14"
       - key: DB_URL
-        fromService:
-          name: agriconnect-db
-          type: pserv
-          property: connectionString
+        sync: false
       - key: DB_USERNAME
-        fromService:
-          name: agriconnect-db
-          type: pserv
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromService:
-          name: agriconnect-db
-          type: pserv
-          property: password
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: FRONTEND_URL
@@ -44,21 +35,3 @@ services:
         sync: false
       - key: ADMIN_DEFAULT_PASSWORD
         sync: false
-
-  - type: pserv
-    name: agriconnect-db
-    env: docker
-    plan: free
-    disk:
-      name: pgdata
-      mountPath: /var/lib/postgresql/data
-      sizeGB: 1
-    envVars:
-      - key: POSTGRES_USER
-        generateValue: true
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: POSTGRES_DB
-        value: agriconnect_db
-    image:
-      image: postgres:16-alpine
