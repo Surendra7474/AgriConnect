@@ -9,27 +9,56 @@ services:
     envVars:
       - key: PORT
         value: "8080"
-      - key: DB_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
       - key: DB_DRIVER
         value: org.postgresql.Driver
       - key: JPA_DIALECT
         value: org.hibernate.dialect.PostgreSQLDialect
       - key: JPA_DDL_AUTO
         value: update
-      - key: JWT_SECRET
-        sync: false
+      - key: JPA_SHOW_SQL
+        value: "false"
       - key: JWT_ACCESS_MINUTES
         value: "120"
       - key: JWT_REFRESH_DAYS
         value: "14"
+      - key: DB_URL
+        fromService:
+          name: agriconnect-db
+          type: pserv
+          property: connectionString
+      - key: DB_USERNAME
+        fromService:
+          name: agriconnect-db
+          type: pserv
+          property: user
+      - key: DB_PASSWORD
+        fromService:
+          name: agriconnect-db
+          type: pserv
+          property: password
+      - key: JWT_SECRET
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: ADMIN_DEFAULT_EMAIL
         sync: false
       - key: ADMIN_DEFAULT_PASSWORD
         sync: false
+
+  - type: pserv
+    name: agriconnect-db
+    env: docker
+    plan: free
+    disk:
+      name: pgdata
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
+    envVars:
+      - key: POSTGRES_USER
+        generateValue: true
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+      - key: POSTGRES_DB
+        value: agriconnect_db
+    image:
+      image: postgres:16-alpine
