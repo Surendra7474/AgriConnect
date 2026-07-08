@@ -44,7 +44,7 @@ jobs:
           DB_DRIVER: com.mysql.cj.jdbc.Driver
           JPA_DIALECT: org.hibernate.dialect.MySQLDialect
           JWT_SECRET: TestSecretKeyForCICDPipelineAtLeast32Characters
-        run: mvn compile -B -q
+        run: mvn compile -B
 
       - name: Run Tests
         working-directory: backend
