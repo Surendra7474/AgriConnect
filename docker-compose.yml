@@ -1,19 +1,18 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: agriconnect-mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: agriconnect-postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-your_password}
-      MYSQL_DATABASE: agriconnect_db
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
+      POSTGRES_USER: ${DB_USERNAME:-agriconnect}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-your_password}
+      POSTGRES_DB: agriconnect_db
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-agriconnect} -d agriconnect_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,11 +30,11 @@ services:
       - "8080:8080"
     environment:
       PORT: "8080"
-      DB_URL: jdbc:mysql://mysql:3306/agriconnect_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      DB_USERNAME: root
+      DB_URL: jdbc:postgresql://postgres:5432/agriconnect_db
+      DB_USERNAME: ${DB_USERNAME:-agriconnect}
       DB_PASSWORD: ${DB_PASSWORD:-your_password}
-      DB_DRIVER: com.mysql.cj.jdbc.Driver
-      JPA_DIALECT: org.hibernate.dialect.MySQLDialect
+      DB_DRIVER: org.postgresql.Driver
+      JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       JPA_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET:-ChangeThisSecretToAStrongValueWithAtLeast32Characters}
       JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-120}
@@ -44,7 +43,7 @@ services:
       ADMIN_DEFAULT_EMAIL: ${ADMIN_DEFAULT_EMAIL:-admin@agriconnect.local}
       ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:-Admin@12345}
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - agriconnect-network
@@ -65,7 +64,7 @@ services:
       - agriconnect-network
 
 volumes:
-  mysql-data:
+  postgres-data:
 
 networks:
   agriconnect-network:

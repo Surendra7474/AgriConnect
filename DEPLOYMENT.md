@@ -7,18 +7,18 @@ This guide covers deploying AgriConnect to production using **100% free services
 ## 📊 Architecture Overview
 
 ```
-┌─────────────────┐     ┌────────────────┐     ┌────────────────┐
-│  Vercel (Free)  │────▶│ Render (Free)  │────▶│ Railway (Free) │
-│  React Frontend │     │ Spring Boot     │     │ MySQL 8        │
-│  Port 443       │     │ Port 8080       │     │ Port 3306      │
-└─────────────────┘     └────────────────┘     └────────────────┘
+┌─────────────────┐     ┌────────────────┐     ┌──────────────────┐
+│  Vercel (Free)  │────▶│ Render (Free)  │────▶│ Supabase (Free)  │
+│  React Frontend │     │ Spring Boot     │     │ PostgreSQL 16    │
+│  Port 443       │     │ Port 8080       │     │ Port 5432        │
+└─────────────────┘     └────────────────┘     └──────────────────┘
 ```
 
 | Service | Purpose | Free Tier Limit |
 |---------|---------|-----------------|
 | **Vercel** | Frontend hosting | 100 GB bandwidth, 6000 build minutes |
 | **Render** | Backend hosting | 750 hours/month, sleeps after 15 min idle |
-| **Railway** | MySQL database | $5 credit (lasts ~1 month), then need new account |
+| **Supabase** | PostgreSQL database | 500 MB database, 2 free projects forever |
 
 ---
 
@@ -80,50 +80,37 @@ docker-compose up -d --build
 
 # View specific service logs
 docker-compose logs -f frontend
-docker-compose logs -f mysql
+docker-compose logs -f postgres
 ```
 
 ---
 
 ## ☁️ Option 2: Free Cloud Deployment
 
-### Step 1 — Create a Free MySQL Database (Railway)
+### Step 1 — Create a Free Supabase PostgreSQL Database
 
-Railway offers $5 free credit which covers ~1 month of MySQL. For truly unlimited free, use **Aiven** instead — both steps are covered below.
+Supabase offers a generous free tier with 500 MB of PostgreSQL storage — enough for development and small production apps.
 
-#### Option A: Railway (simpler, $5 credit)
-
-1. Go to [railway.app](https://railway.app) → Sign up with GitHub
-2. Click **New Project** → **Deploy MySQL**
-3. Wait for deployment → Click the MySQL service → **Connect** tab
-4. Copy the **MySQL Connection URL** — it looks like:
+1. Go to [supabase.com](https://supabase.com) → Sign up with GitHub
+2. Click **New project** → Choose your organization
+3. Fill in:
+   - **Name**: `agriconnect-db`
+   - **Database Password**: Generate a strong password (save it!)
+   - **Region**: Choose the closest to your Render region (e.g., `ap-south-1` for India)
+4. Click **Create project** → Wait ~2 minutes for provisioning
+5. After creation, go to **Project Settings** → **Database** → **Connection string**
+6. Select **JDBC** tab → Copy the connection string (it ends with `?user=...&password=...`)
+7. It looks like:
    ```
-   mysql://root:password@host.railway.internal:3306/railway
-   ```
-5. Convert it to JDBC format:
-   ```
-   jdbc:mysql://HOST:PORT/railway?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
-   ```
-   Replace `HOST`, `PORT`, and note the `password` separately.
-
-#### Option B: Aiven (free forever, more steps)
-
-1. Go to [aiven.io](https://aiven.io) → Sign up → **Create Service**
-2. Select **MySQL** → Free plan → Choose cloud region near you
-3. After creation, go to **Overview** → Copy:
-   - **Host** (e.g., `mysql-xxx.aivencloud.com`)
-   - **Port** (e.g., `27771`)
-   - **User** (e.g., `avnadmin`)
-   - **Password**
-4. JDBC URL format:
-   ```
-   jdbc:mysql://HOST:PORT/defaultdb?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+   jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres?user=postgres.xxxxx&password=your_password
    ```
 
-> **Save these values** — you'll need them for the backend:
-> - `DB_URL`
-> - `DB_USERNAME`
-> - `DB_PASSWORD`
+> **Save these values** — you'll need them:
+> - `DB_URL`: the full JDBC URL above
+> - `DB_USERNAME`: the `user` parameter from the URL (e.g., `postgres.xxxxx`)
+> - `DB_PASSWORD`: the password you chose
+
+**Important:** Use the **Pooler (port 5432)** connection string with session mode for Spring Boot. Go to **Project Settings → Database → Connection pooling** and ensure **Pool Mode** is set to **Session**.
 
 ---
 
@@ -132,17 +119,13 @@ Railway offers $5 free credit which covers ~1 month of MySQL. For truly unlimite
 1. Push the latest code to your GitHub repo:
    ```bash
    git add .
-   git commit -m "Ready for deployment"
-   git push origin main
+   git commit -m "Switch to Supabase PostgreSQL"
+   git push origin master
    ```
 
 2. Go to [render.com](https://render.com) → Sign up with GitHub
 
-3. Click **New +** → **Blueprint**
-
-4. Connect your GitHub repo — Render will detect `render.yaml` and auto-configure
-
-5. OR manual setup: **New +** → **Web Service** → connect repo
+3. Click **New +** → **Web Service** → connect your GitHub repo
 
    Configure:
    | Setting | Value |
@@ -153,16 +136,18 @@ Railway offers $5 free credit which covers ~1 month of MySQL. For truly unlimite
    | Health Check Path | `/actuator/health` |
    | Plan | **Free** |
 
-6. Add **Environment Variables** (in Render dashboard → Environment tab):
+4. OR use **Blueprint**: Render will detect `render.yaml` and auto-configure.
+
+5. Add **Environment Variables** (in Render dashboard → Environment tab):
 
    | Variable | Value |
    |----------|-------|
    | `PORT` | `8080` |
-   | `DB_URL` | `jdbc:mysql://<HOST>:<PORT>/<DB_NAME>?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
-   | `DB_USERNAME` | (from Railway/Aiven) |
-   | `DB_PASSWORD` | (from Railway/Aiven) |
-   | `DB_DRIVER` | `com.mysql.cj.jdbc.Driver` |
-   | `JPA_DIALECT` | `org.hibernate.dialect.MySQLDialect` |
+   | `DB_URL` | `jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres` |
+   | `DB_USERNAME` | (from Supabase JDBC string, e.g. `postgres.xxxxx`) |
+   | `DB_PASSWORD` | (your Supabase database password) |
+   | `DB_DRIVER` | `org.postgresql.Driver` |
+   | `JPA_DIALECT` | `org.hibernate.dialect.PostgreSQLDialect` |
    | `JPA_DDL_AUTO` | `update` |
    | `JWT_SECRET` | Generate a random 64-char string (use `openssl rand -base64 48`) |
    | `JWT_ACCESS_MINUTES` | `120` |
@@ -171,15 +156,25 @@ Railway offers $5 free credit which covers ~1 month of MySQL. For truly unlimite
    | `ADMIN_DEFAULT_EMAIL` | `admin@agriconnect.local` |
    | `ADMIN_DEFAULT_PASSWORD` | (choose a strong password) |
 
-7. Click **Create Web Service** — build takes 5-10 minutes
+   > **Note on DB_URL**: Supabase's connection pooler uses different syntax. The full JDBC URL should look like:
+   > ```
+   > jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+   > ```
+   > If you see connection issues, try port `6543` (transaction mode pooler) or use the direct connection port `5432`.
+   > Append `?sslmode=require` if SSL issues arise:
+   > ```
+   > jdbc:postgresql://HOST:PORT/postgres?sslmode=require
+   > ```
 
-8. Verify:
+6. Click **Create Web Service** — build takes 5-10 minutes
+
+7. Verify:
    ```bash
    curl https://agriconnect-backend.onrender.com/actuator/health
    # Should return: {"status":"UP"}
    ```
 
-9. Note your backend URL: `https://agriconnect-backend.onrender.com`
+8. Note your backend URL: `https://agriconnect-backend.onrender.com`
 
 ---
 
@@ -240,7 +235,7 @@ The repo already contains `.github/workflows/ci-cd.yml`. Add these **GitHub Secr
 | `RENDER_SERVICE_ID` | Render → service dashboard → Settings → Service ID |
 | `RENDER_API_KEY` | Render → Account Settings → API Keys |
 
-After setting secrets, every push to `main` auto-deploys.
+After setting secrets, every push to `master` auto-deploys.
 
 ---
 
@@ -250,6 +245,18 @@ After setting secrets, every push to `main` auto-deploys.
 - Render free tier sleeps after 15 min of inactivity. First request wakes it up (takes 30-60s). Refresh the page.
 - Check Render logs for startup errors — usually a DB connection issue.
 
+### "Supabase connection refused" or "SSL error"
+- Ensure the JDBC URL uses the correct port: Supabase Session Pooler = `5432`, Transaction Pooler = `6543`.
+- In Supabase dashboard → Project Settings → Database:
+  - Copy the **JDBC** connection string
+  - Ensure the password is URL-encoded (e.g., `@` → `%40`, `!` → `%21`)
+- Add `?sslmode=require` to the end of the JDBC URL if SSL is required.
+
+### "Relation not found" errors on startup
+- Supabase PostgreSQL is case-sensitive. Ensure `JPA_DDL_AUTO=update` is set — this auto-creates tables.
+- Verify `spring.jpa.properties.hibernate.dialect` is set to `org.hibernate.dialect.PostgreSQLDialect`.
+- For production, use `JPA_DDL_AUTO=validate` and run migrations manually.
+
 ### "CORS error in browser console"
 - Ensure `FRONTEND_URL` on Render matches your Vercel URL exactly (including `https://`).
 - After updating, redeploy or wait for Render auto-deploy.
@@ -258,11 +265,6 @@ After setting secrets, every push to `main` auto-deploys.
 - Check Vercel build logs — look for Vite build errors.
 - Verify `VITE_API_URL` is set correctly in Vercel.
 - Open DevTools → Network tab — check if API calls are going to the correct Render URL.
-
-### "MySQL connection refused"
-- Railway/Aiven: ensure the database is running and not paused.
-- Check firewall: Aiven may need your Render IP allowlisted (Aiven → Overview → copy public IP, add to allowed).
-- Render's IP changes, so use `useSSL=true` in the JDBC URL.
 
 ### "Docker build fails"
 ```bash
@@ -280,10 +282,9 @@ docker-compose up -d --build
 |---------|--------------|----------------|
 | Render (backend) | 750 hours (31 days) | Service sleeps; wakes on request |
 | Vercel (frontend) | 100 GB bandwidth | Sufficient for small/medium traffic |
-| Railway (MySQL) | $5 credit (~1 month) | Migrate to Aiven for permanent free |
-| Aiven (MySQL) | Free forever | 1 GB storage, 1 shared vCPU — good enough |
+| Supabase (PostgreSQL) | 500 MB, 2 free projects | Upgrade to Pro ($25/month) for more |
 
-**Total cost: $0/month** if using Aiven for MySQL.
+**Total cost: $0/month** — all three services have permanent free tiers.
 
 ---
 
@@ -307,8 +308,9 @@ This gives you the full stack on one VM with no cold starts and unlimited traffi
 |------|---------|
 | `Dockerfile` | Multi-stage backend build (Maven → JRE) |
 | `frontend/Dockerfile` | Multi-stage frontend build (Vite → nginx) |
-| `docker-compose.yml` | Full-stack local deployment |
+| `docker-compose.yml` | Full-stack local deployment (PostgreSQL) |
 | `.env` | Environment variables for Docker Compose |
 | `.dockerignore` | Excludes unnecessary files from Docker context |
 | `render.yaml` | Render Blueprint for one-click backend deploy |
+| `.github/workflows/ci-cd.yml` | CI/CD pipeline with PostgreSQL service |
 | `DEPLOYMENT.md` | This guide |

@@ -16,9 +16,9 @@ services:
       - key: DB_PASSWORD
         sync: false
       - key: DB_DRIVER
-        value: com.mysql.cj.jdbc.Driver
+        value: org.postgresql.Driver
       - key: JPA_DIALECT
-        value: org.hibernate.dialect.MySQLDialect
+        value: org.hibernate.dialect.PostgreSQLDialect
       - key: JPA_DDL_AUTO
         value: update
       - key: JWT_SECRET
