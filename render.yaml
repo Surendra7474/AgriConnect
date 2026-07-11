@@ -10,9 +10,9 @@ services:
       - key: PORT
         value: "8080"
       - key: DB_DRIVER
-        value: org.postgresql.Driver
+        value: org.h2.Driver
       - key: JPA_DIALECT
-        value: org.hibernate.dialect.PostgreSQLDialect
+        value: org.hibernate.dialect.H2Dialect
       - key: JPA_DDL_AUTO
         value: update
       - key: JPA_SHOW_SQL
@@ -22,11 +22,11 @@ services:
       - key: JWT_REFRESH_DAYS
         value: "14"
       - key: DB_URL
-        value: jdbc:postgresql://db.arfamjwpxqroakimkflm.supabase.co:6543/postgres?sslmode=require&prepareThreshold=0&connectTimeout=30000&socketTimeout=60000
+        value: jdbc:h2:mem:agriconnect_db;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
       - key: DB_USERNAME
-        value: postgres
+        value: sa
       - key: DB_PASSWORD
-        value: SaiSurendra$@2026
+        value: ""
       - key: JWT_SECRET
         value: AgriConnectSupabaseJWTSecretKey2026!Secure
       - key: FRONTEND_URL
