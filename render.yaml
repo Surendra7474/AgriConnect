@@ -22,7 +22,7 @@ services:
       - key: JWT_REFRESH_DAYS
         value: "14"
       - key: DB_URL
-        value: jdbc:postgresql://db.arfamjwpxqroakimkflm.supabase.co:5432/postgres?sslmode=require
+        value: jdbc:postgresql://db.arfamjwpxqroakimkflm.supabase.co:6543/postgres?sslmode=require&prepareThreshold=0&connectTimeout=30000&socketTimeout=60000
       - key: DB_USERNAME
         value: postgres
       - key: DB_PASSWORD
