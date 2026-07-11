@@ -25,6 +25,12 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng',
+      convertDetectedLanguage: (lng) => {
+        const supported = ['en', 'hi', 'te'];
+        const normalized = lng?.split('-')[0]?.toLowerCase() || 'en';
+        return supported.includes(normalized) ? normalized : 'en';
+      },
     },
   });
 

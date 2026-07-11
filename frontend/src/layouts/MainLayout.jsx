@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Badge } from '@mui/material';
+import CartDrawer from '../components/CartDrawer';
+import { useCart } from '../contexts/CartContext';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -35,8 +38,11 @@ import {
   Brightness7,
   ChevronLeft,
   Notifications,
+  ShoppingCart as ShoppingCartIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useThemeMode } from '../contexts/ThemeContext';
 import { ROLES } from '../constants';
@@ -50,9 +56,11 @@ export default function MainLayout() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [cartOpen, setCartOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, isAdmin, isFarmer, isWorker, isEquipmentOwner, isBuyer } = useAuth();
+  const { totalItems } = useCart();
 
   const handleLogout = () => {
     setAnchorEl(null);
@@ -60,45 +68,57 @@ export default function MainLayout() {
     navigate('/login');
   };
 
+  const { t } = useTranslation();
+
   const menuItems = [
-    { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { label: t('nav.dashboard'), icon: <Dashboard />, path: '/dashboard' },
+    // Equipment: farmers browse, owners manage, admin manages
     ...(isFarmer || isEquipmentOwner || isAdmin
-      ? [{ label: 'Equipment', icon: <Build />, path: '/equipment' }]
+      ? [{ label: t('nav.equipment'), icon: <Build />, path: '/equipment' }]
       : []),
-    ...(isFarmer || isWorker
-      ? [{ label: 'Workers', icon: <People />, path: '/workers' }]
+    // Workers: only farmers browse workers (workers don't see themselves)
+    ...(isFarmer
+      ? [{ label: t('nav.workers'), icon: <People />, path: '/workers' }]
       : []),
+    // Marketplace: buyers, equipment owners, workers can all buy
     ...(isBuyer || isEquipmentOwner || isWorker
-      ? [{ label: 'Marketplace', icon: <Agriculture />, path: '/marketplace' }]
+      ? [{ label: t('nav.marketplace'), icon: <Agriculture />, path: '/marketplace' }]
       : []),
+    // Farmer-specific
     ...(isFarmer
-      ? [{ label: 'My Products', icon: <Agriculture />, path: '/marketplace/my' }]
+      ? [
+          { label: t('nav.myProducts'), icon: <Agriculture />, path: '/marketplace/my' },
+          { label: t('nav.sellProducts'), icon: <Agriculture />, path: '/marketplace/new' },
+          { label: t('nav.bookings'), icon: <CalendarMonthIcon />, path: '/bookings' },
+          { label: t('nav.cropPrediction'), icon: <Assessment />, path: '/predictions' },
+          { label: t('nav.incomingOrders'), icon: <ShoppingCartIcon />, path: '/incoming-orders' },
+        ]
       : []),
-    ...(isFarmer
-      ? [{ label: 'Sell Produce', icon: <Agriculture />, path: '/marketplace/new' }]
+    // My Orders: buyers, equipment owners, workers
+    ...(isBuyer || isEquipmentOwner || isWorker
+      ? [{ label: t('nav.myOrders'), icon: <ShoppingCartIcon />, path: '/orders' }]
       : []),
-    ...(isFarmer
-      ? [{ label: 'Bookings', icon: <Agriculture />, path: '/bookings' }]
-      : []),
-    ...(isFarmer
-      ? [{ label: 'Crop Prediction', icon: <Assessment />, path: '/predictions' }]
-      : []),
+    // Worker-specific
     ...(isWorker
-      ? [{ label: 'My Profile', icon: <People />, path: '/worker-profile' }]
+      ? [
+          { label: t('nav.hiringRequests'), icon: <People />, path: '/workers/hiring/worker' },
+          { label: t('nav.myProfile'), icon: <Person />, path: '/worker-profile' },
+        ]
       : []),
-    { label: 'Feedback', icon: <Feedback />, path: '/feedback' },
+    // Equipment owner
+    ...(isEquipmentOwner
+      ? [
+          { label: t('nav.myEquipment'), icon: <Build />, path: '/equipment/mine' },
+          { label: t('nav.bookings'), icon: <CalendarMonthIcon />, path: '/bookings' },
+        ]
+      : []),
+    { label: t('nav.feedback'), icon: <Feedback />, path: '/feedback' },
     ...(isAdmin
       ? [
-          {
-            label: 'Admin Panel',
-            icon: <AdminPanelSettings />,
-            path: '/admin',
-          },
-          {
-            label: 'Manage Users',
-            icon: <People />,
-            path: '/admin/users',
-          },
+          { label: 'Main Admin Dashboard', icon: <AdminPanelSettings />, path: '/admin' },
+          { label: t('nav.manageUsers'), icon: <People />, path: '/admin/users' },
+          { label: 'Equipment', icon: <Build />, path: '/admin/equipment' },
+          { label: 'Feedback', icon: <Feedback />, path: '/admin/feedback' },
         ]
       : []),
   ];
@@ -198,6 +218,17 @@ export default function MainLayout() {
           </Typography>
 
           <LanguageSwitcher />
+
+          {/* Cart Icon */}
+          {(isBuyer || isEquipmentOwner || isWorker || isFarmer) && (
+            <Tooltip title="Shopping Cart">
+              <IconButton sx={{ mr: 1 }} onClick={() => setCartOpen(true)}>
+                <Badge badgeContent={totalItems} color="primary">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          )}
 
           <Tooltip title="Notifications">
             <IconButton sx={{ mr: 1 }}>
@@ -322,6 +353,7 @@ export default function MainLayout() {
           </Typography>
         </Box>
       </Box>
+        <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </Box>
   );
 }

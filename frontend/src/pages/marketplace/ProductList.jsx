@@ -23,6 +23,12 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Badge,
+  CircularProgress,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,12 +37,15 @@ import {
   AttachMoney as MoneyIcon,
   Clear as ClearIcon,
   ShoppingCart as CartIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 
 import PageHeader from '../../components/PageHeader';
 import EmptyState from '../../components/EmptyState';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { productService } from '../../services/productService';
 import { useTranslation } from 'react-i18next';
 
@@ -46,7 +55,8 @@ const UNIT_OPTIONS = { KG: 'kg', QUINTAL: 'quintal', TON: 'ton', DOZEN: 'dozen',
 export default function ProductList() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isFarmer, isBuyer, isAuthenticated } = useAuth();
+  const { user, isFarmer, isAuthenticated } = useAuth();
+  const { addItem } = useCart();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +67,11 @@ export default function ProductList() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const size = 12;
+
+  // Quantity edit dialog for farmer owners
+  const [qtyDialog, setQtyDialog] = useState({ open: false, product: null });
+  const [qtyValue, setQtyValue] = useState('');
+  const [qtyUpdating, setQtyUpdating] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -89,6 +104,40 @@ export default function ProductList() {
   };
 
   const hasActiveFilters = search || category || location;
+
+  const handleOpenQtyDialog = (product, e) => {
+    e.stopPropagation();
+    setQtyValue(String(product.quantityAvailable || 0));
+    setQtyDialog({ open: true, product });
+  };
+
+  const handleSaveQty = async () => {
+    const qty = parseFloat(qtyValue);
+    if (isNaN(qty) || qty < 0) {
+      toast.error('Quantity must be 0 or greater');
+      return;
+    }
+    setQtyUpdating(true);
+    try {
+      await productService.updateQuantity(qtyDialog.product.id, { quantity: qty });
+      toast.success('Quantity updated successfully');
+      setQtyDialog({ open: false, product: null });
+      fetchProducts();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to update quantity');
+    } finally {
+      setQtyUpdating(false);
+    }
+  };
+
+  const handleAddToCart = (product, e) => {
+    e.stopPropagation();
+    if (Number(product.quantityAvailable) <= 0) {
+      toast.error('This product is out of stock');
+      return;
+    }
+    addItem(product, 1);
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -136,16 +185,22 @@ export default function ProductList() {
         ) : (
           <>
             <Grid container spacing={3}>
-              {products.map((item, index) => (
+              {products.map((item, index) => {
+                const isOutOfStock = Number(item.quantityAvailable) <= 0;
+                const isOwner = isFarmer && item.farmer?.id === user?.id;
+                return (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }}>
-                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 6, cursor: 'pointer' } }}
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 3, transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 6, cursor: 'pointer' }, opacity: isOutOfStock ? 0.7 : 1 }}
                       onClick={() => navigate(`/marketplace/${item.id}`)}>
-                      <CardMedia component="div" sx={{ height: 180, backgroundColor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <CardMedia component="div" sx={{ height: 180, backgroundColor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                         {item.imageUrls?.length > 0 ? (
                           <Box component="img" src={item.imageUrls[0]} alt={item.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Typography variant="h3">{item.organic ? '🥬' : '🥕'}</Typography>
+                        )}
+                        {(isOutOfStock || !item.active) && (
+                          <Chip label={t('common.outOfStock')} color="error" size="small" sx={{ position: 'absolute', bottom: 8, right: 8, fontWeight: 700 }} />
                         )}
                       </CardMedia>
                       <CardContent sx={{ flexGrow: 1, pb: 0 }}>
@@ -165,17 +220,38 @@ export default function ProductList() {
                               ₹{item.pricePerUnit?.toLocaleString?.() || item.pricePerUnit}/{UNIT_OPTIONS[item.unit] || item.unit}
                             </Typography>
                           </Stack>
+                          {item.farmerPhone && (
+                            <Typography variant="caption" color="text.secondary">
+                              Farmer: {item.farmer?.fullName} · 📞 <a href={`tel:${item.farmerPhone}`} style={{ color: 'inherit' }} onClick={(e) => e.stopPropagation()}>{item.farmerPhone}</a>
+                            </Typography>
+                          )}
                         </Stack>
                       </CardContent>
-                      <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+                      <CardActions sx={{ px: 2, pb: 2, pt: 0, flexWrap: 'wrap', gap: 0.5 }}>
                         <Button size="small" variant="outlined" fullWidth onClick={(e) => { e.stopPropagation(); navigate(`/marketplace/${item.id}`); }}>
                           View Details
                         </Button>
+                        {isAuthenticated && !isOwner && !isOutOfStock && (
+                          <Button size="small" variant="contained" startIcon={<CartIcon />} onClick={(e) => handleAddToCart(item, e)}>
+                            Add to Cart
+                          </Button>
+                        )}
+                        {isOwner && (
+                          <>
+                            <Button size="small" color="info" variant="outlined" startIcon={<EditIcon />} onClick={(e) => handleOpenQtyDialog(item, e)}>
+                              Edit Qty
+                            </Button>
+                            <Button size="small" color="error" onClick={async (e) => { e.stopPropagation(); if (window.confirm(t('product.deleteConfirm'))) { try { await productService.delete(item.id); toast.success(t('product.productDeleted')); fetchProducts(); } catch (err) { toast.error(err?.response?.data?.message || t('common.error')); } } }}>
+                              <DeleteIcon fontSize="small" />
+                            </Button>
+                          </>
+                        )}
                       </CardActions>
                     </Card>
                   </motion.div>
                 </Grid>
-              ))}
+                );
+              })}
             </Grid>
             {totalPages > 1 && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -190,6 +266,34 @@ export default function ProductList() {
             <AddIcon />
           </Fab>
         )}
+
+        {/* Quantity Edit Dialog */}
+        <Dialog open={qtyDialog.open} onClose={() => setQtyDialog({ open: false, product: null })} maxWidth="xs" fullWidth>
+          <DialogTitle>Edit Available Quantity</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Typography variant="body2">
+                Product: <strong>{qtyDialog.product?.name}</strong>
+              </Typography>
+              <TextField
+                label="Available Quantity"
+                type="number"
+                fullWidth
+                value={qtyValue}
+                onChange={(e) => setQtyValue(e.target.value)}
+                inputProps={{ min: 0, step: 0.01 }}
+                helperText={`Unit: ${UNIT_OPTIONS[qtyDialog.product?.unit] || qtyDialog.product?.unit}`}
+                autoFocus
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setQtyDialog({ open: false, product: null })}>Cancel</Button>
+            <Button onClick={handleSaveQty} variant="contained" disabled={qtyUpdating}>
+              {qtyUpdating ? <CircularProgress size={20} /> : 'Save'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </motion.div>
   );

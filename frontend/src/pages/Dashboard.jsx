@@ -157,7 +157,7 @@ export default function Dashboard() {
           <>
             <Grid item xs={6} sm={3}><Button variant="contained" fullWidth size="large" startIcon={<Build />} onClick={() => navigate('/equipment')}>Browse Equipment</Button></Grid>
             <Grid item xs={6} sm={3}><Button variant="contained" fullWidth size="large" startIcon={<People />} onClick={() => navigate('/workers')}>Hire Workers</Button></Grid>
-            <Grid item xs={6} sm={3}><Button variant="contained" fullWidth size="large" startIcon={<Agriculture />} onClick={() => navigate('/marketplace/new')}>Sell Produce</Button></Grid>
+            <Grid item xs={6} sm={3}><Button variant="contained" fullWidth size="large" startIcon={<Agriculture />} onClick={() => navigate('/marketplace/new')}>Sell Products</Button></Grid>
             <Grid item xs={6} sm={3}><Button variant="outlined" fullWidth size="large" startIcon={<Assessment />} onClick={() => navigate('/predictions')}>Predict Crop</Button></Grid>
             <Grid item xs={6} sm={3}><Button variant="outlined" fullWidth size="large" startIcon={<Feedback />} onClick={() => navigate('/feedback')}>Submit Feedback</Button></Grid>
           </>

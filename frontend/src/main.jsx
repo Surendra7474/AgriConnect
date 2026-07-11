@@ -8,6 +8,7 @@ import App from './App';
 import './i18n';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CartProvider } from './contexts/CartContext';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -41,21 +42,23 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <CssBaseline />
         <AuthProvider>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="colored"
-          />
+          <CartProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
+          </CartProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

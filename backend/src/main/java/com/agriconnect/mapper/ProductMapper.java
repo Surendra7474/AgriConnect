@@ -23,6 +23,8 @@ public class ProductMapper {
                         .map(ProductImage::getImageUrl)
                         .toList();
 
+        String farmerPhone = product.getFarmer() != null ? product.getFarmer().getPhone() : null;
+
         return new ProductResponse(
                 product.getId(),
                 userMapper.toSummary(product.getFarmer()),
@@ -39,6 +41,7 @@ public class ProductMapper {
                 product.getApprovalStatus().name(),
                 product.getAverageRating(),
                 imageUrls,
+                farmerPhone,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );
@@ -59,6 +62,8 @@ public class ProductMapper {
                 order.getStatus().name(),
                 order.getPaymentStatus().name(),
                 order.getNotes(),
+                order.getCancellationReason(),
+                order.getPaymentProofUrl(),
                 order.getCreatedAt(),
                 order.getUpdatedAt()
         );

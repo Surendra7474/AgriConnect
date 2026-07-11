@@ -20,7 +20,7 @@ import {
   InputAdornment,
   TablePagination,
 } from '@mui/material';
-import { Search, CheckCircle, Cancel, Refresh } from '@mui/icons-material';
+import { Search, CheckCircle, Cancel, Delete, Refresh } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { adminService } from '../../services/adminService';
@@ -63,6 +63,17 @@ export default function AdminEquipment() {
       fetchEquipment();
     } catch {
       toast.error('Failed to update equipment status');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this equipment?')) return;
+    try {
+      await adminService.deleteEquipment(id);
+      toast.success('Equipment deleted successfully');
+      fetchEquipment();
+    } catch {
+      toast.error('Failed to delete equipment');
     }
   };
 
@@ -154,41 +165,51 @@ export default function AdminEquipment() {
                       <TableCell>
                         <Chip label={eq.category} size="small" variant="outlined" />
                       </TableCell>
-                      <TableCell>{eq.ownerName || '-'}</TableCell>
+                      <TableCell>{eq.owner?.fullName || eq.ownerName || '-'}</TableCell>
                       <TableCell>
                         {eq.rentalPricePerDay ? `₹${eq.rentalPricePerDay}/day` : '-'}
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={STATUS_LABELS[eq.status] || eq.status}
+                          label={STATUS_LABELS[eq.approvalStatus] || eq.approvalStatus}
                           size="small"
-                          color={STATUS_COLORS[eq.status] || 'default'}
+                          color={STATUS_COLORS[eq.approvalStatus] || 'default'}
                         />
                       </TableCell>
                       <TableCell>
                         {eq.createdAt ? new Date(eq.createdAt).toLocaleDateString() : '-'}
                       </TableCell>
                       <TableCell align="center">
-                        {eq.status === EQUIPMENT_STATUS.PENDING && (
-                          <Stack direction="row" spacing={0.5} justifyContent="center">
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() => handleUpdateStatus(eq.id, EQUIPMENT_STATUS.APPROVED)}
-                              title="Approve"
-                            >
-                              <CheckCircle fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleUpdateStatus(eq.id, EQUIPMENT_STATUS.REJECTED)}
-                              title="Reject"
-                            >
-                              <Cancel fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        )}
+                        <Stack direction="row" spacing={0.5} justifyContent="center">
+                          {eq.approvalStatus === EQUIPMENT_STATUS.PENDING && (
+                            <>
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => handleUpdateStatus(eq.id, EQUIPMENT_STATUS.APPROVED)}
+                                title="Approve"
+                              >
+                                <CheckCircle fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleUpdateStatus(eq.id, EQUIPMENT_STATUS.REJECTED)}
+                                title="Reject"
+                              >
+                                <Cancel fontSize="small" />
+                              </IconButton>
+                            </>
+                          )}
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(eq.id)}
+                            title="Delete"
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))

@@ -113,9 +113,10 @@ export default function AdminWorkers() {
               sx={{ minWidth: 180 }}
             >
               <MenuItem value="">All Status</MenuItem>
-              <MenuItem value={WORKER_APPROVAL_STATUS.PENDING}>Pending</MenuItem>
+                    <MenuItem value={WORKER_APPROVAL_STATUS.PENDING}>Pending</MenuItem>
               <MenuItem value={WORKER_APPROVAL_STATUS.APPROVED}>Approved</MenuItem>
               <MenuItem value={WORKER_APPROVAL_STATUS.REJECTED}>Rejected</MenuItem>
+              <MenuItem value={WORKER_APPROVAL_STATUS.SUSPENDED}>Suspended</MenuItem>
             </TextField>
           </Stack>
         </CardContent>

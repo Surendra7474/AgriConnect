@@ -30,7 +30,7 @@ export const FEEDBACK_STATUS = {
 };
 
 export const FEEDBACK_TYPE = {
-  BUG: 'BUG',
+  BUG: 'BUG_REPORT',
   SUGGESTION: 'SUGGESTION',
   GENERAL: 'GENERAL',
 };
@@ -58,9 +58,10 @@ export const STATUS_LABELS = {
   OPEN: 'Open',
   IN_PROGRESS: 'In Progress',
   RESOLVED: 'Resolved',
-  BUG: 'Bug Report',
+  BUG_REPORT: 'Bug Report',
   SUGGESTION: 'Suggestion',
   GENERAL: 'General Feedback',
+  BUG: 'Bug Report',
 };
 
 export const STATUS_COLORS = {
@@ -74,6 +75,7 @@ export const STATUS_COLORS = {
   OPEN: 'error',
   IN_PROGRESS: 'warning',
   RESOLVED: 'success',
+  BUG_REPORT: 'error',
 };
 
 export const SOIL_TYPES = [

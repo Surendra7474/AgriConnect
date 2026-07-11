@@ -123,8 +123,7 @@ const EquipmentDetail = () => {
       await equipmentService.createBooking({
         equipmentId: equipment.id,
         bookingDate: data.bookingDate,
-        endDate: data.endDate,
-        totalAmount: diffDays * equipment.rentalPricePerDay,
+        returnDate: data.endDate,
         notes: data.notes || '',
       });
       toast.success('Booking request sent successfully!');
@@ -381,6 +380,11 @@ const EquipmentDetail = () => {
                     <Typography variant="body2" color="text.secondary">
                       {equipment.owner?.email || ''}
                     </Typography>
+                    {equipment.owner?.phone && (
+                      <Typography variant="body2" color="text.secondary">
+                        📞 {equipment.owner.phone}
+                      </Typography>
+                    )}
                   </Box>
                 </Stack>
               </Paper>

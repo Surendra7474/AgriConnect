@@ -41,7 +41,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     public ProductOrderResponse placeOrder(ProductOrderRequest request) {
         User currentUser = currentUserProvider.getCurrentUser();
-        currentUserProvider.requireAnyRole(currentUser, RoleName.BUYER, RoleName.FARMER, RoleName.ADMIN);
+        currentUserProvider.requireAnyRole(currentUser, RoleName.BUYER, RoleName.FARMER, RoleName.EQUIPMENT_OWNER, RoleName.WORKER, RoleName.ADMIN);
 
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("product.not.found", request.productId()));
@@ -67,6 +67,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         order.setDeliveryAddress(request.deliveryAddress().trim());
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.UNPAID);
+        order.setPaymentProofUrl(clean(request.paymentProofUrl()));
         order.setNotes(clean(request.notes()));
 
         // Decrement available quantity
@@ -197,11 +198,21 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         // Farmer/Admin transitions
         switch (current) {
             case PENDING:
-                if (next != OrderStatus.CONFIRMED && next != OrderStatus.REJECTED) {
+                if (next != OrderStatus.CONFIRMED && next != OrderStatus.REJECTED && next != OrderStatus.CANCELLED) {
                     throw new BadRequestException("order.transition.confirm.reject");
                 }
                 break;
             case CONFIRMED:
+                if (next != OrderStatus.PACKED && next != OrderStatus.CANCELLED) {
+                    throw new BadRequestException("order.transition.packed");
+                }
+                break;
+            case PACKED:
+                if (next != OrderStatus.DISPATCHED) {
+                    throw new BadRequestException("order.transition.dispatched");
+                }
+                break;
+            case DISPATCHED:
                 if (next != OrderStatus.OUT_FOR_DELIVERY) {
                     throw new BadRequestException("order.transition.out.for.delivery");
                 }

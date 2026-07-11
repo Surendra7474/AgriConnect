@@ -25,18 +25,37 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const response = await authService.login(credentials);
-    const { accessToken, refreshToken, userId, fullName, email, role } = response.data.data;
-    const userData = { id: userId, fullName, email, role };
+    const { accessToken, refreshToken, userId, fullName, email, phone, preferredLanguage, role } = response.data.data;
+    const userData = { id: userId, fullName, email, phone, preferredLanguage, role };
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    // Apply saved language preference
+    if (preferredLanguage) {
+      localStorage.setItem('i18nextLng', preferredLanguage);
+      import('i18next').then((i18n) => i18n.default.changeLanguage(preferredLanguage));
+    }
     setUser(userData);
     return userData;
   }, []);
 
   const register = useCallback(async (data) => {
     const response = await authService.register(data);
+    const regData = response.data.data;
+    if (regData?.accessToken) {
+      const { accessToken, refreshToken, userId, fullName, email, phone, preferredLanguage, role } = regData;
+      const userData = { id: userId, fullName, email, phone, preferredLanguage, role };
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    }
     return response.data;
+  }, []);
+
+  const refreshUser = useCallback((userData) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   }, []);
 
   const logout = useCallback(() => {
@@ -65,6 +84,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         register,
+        refreshUser,
         logout,
         hasRole,
         isAuthenticated,

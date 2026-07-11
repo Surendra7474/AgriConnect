@@ -41,9 +41,9 @@ export default function LanguageSwitcher() {
 
   return (
     <>
-      <IconButton onClick={handleOpen} color="inherit" size="small">
+      <IconButton onClick={handleOpen} size="small" sx={{ color: 'text.primary' }}>
         <LanguageIcon />
-        <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600 }}>
+        <Typography variant="body2" sx={{ ml: 0.5, fontWeight: 600, color: 'text.primary' }}>
           {currentLang.code.toUpperCase()}
         </Typography>
       </IconButton>

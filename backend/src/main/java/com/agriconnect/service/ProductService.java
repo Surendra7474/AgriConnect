@@ -24,5 +24,7 @@ public interface ProductService {
 
     ProductResponse updateApprovalStatus(Long productId, ProductStatus status);
 
+    ProductResponse updateQuantity(Long productId, java.math.BigDecimal quantity);
+
     long countByApprovalStatus(ProductStatus status);
 }

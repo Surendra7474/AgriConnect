@@ -4,15 +4,15 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import {
   Box, Container, Grid, Card, CardMedia, Typography, Button, Stack, Chip,
-  TextField, Divider, Dialog, DialogTitle, DialogContent, DialogActions,
-  Table, TableBody, TableRow, TableCell,
+  TextField, Divider, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress,
 } from '@mui/material';
 import {
   LocationOn, CalendarToday, AttachMoney, Scale, Spa, ShoppingCart,
-  ArrowBack,
+  ArrowBack, Phone as PhoneIcon,
 } from '@mui/icons-material';
 import PageHeader from '../../components/PageHeader';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import { productService, productOrderService } from '../../services/productService';
 import { useTranslation } from 'react-i18next';
 import StatusChip from '../../components/StatusChip';
@@ -23,13 +23,15 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, isFarmer, isBuyer, isAdmin, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { addItem } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orderOpen, setOrderOpen] = useState(false);
   const [quantity, setQuantity] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [paymentProofUrl, setPaymentProofUrl] = useState('');
   const [notes, setNotes] = useState('');
   const [ordering, setOrdering] = useState(false);
 
@@ -62,6 +64,7 @@ export default function ProductDetail() {
         productId: product.id,
         quantity: parseFloat(quantity),
         deliveryAddress: deliveryAddress.trim(),
+        paymentProofUrl: paymentProofUrl.trim() || undefined,
         notes: notes.trim() || undefined,
       });
       toast.success(t('order.title') + ' placed successfully!');
@@ -74,10 +77,19 @@ export default function ProductDetail() {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!product || Number(product.quantityAvailable) <= 0) {
+      toast.error('This product is out of stock');
+      return;
+    }
+    addItem(product, 1);
+    toast.success('Added to cart!');
+  };
+
   if (loading) return <Container maxWidth="lg" sx={{ py: 4 }}><Box sx={{ py: 8, textAlign: 'center' }}><Typography>{t('common.loading')}</Typography></Box></Container>;
   if (!product) return <Container maxWidth="lg" sx={{ py: 4 }}><Typography>Product not found</Typography></Container>;
 
-  const canOrder = isAuthenticated && (isBuyer || isFarmer || isAdmin) && product.farmer?.id !== user?.id;
+  const isOwner = product.farmer?.id === user?.id;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -128,6 +140,16 @@ export default function ProductDetail() {
                 <Chip icon={<Spa />} label={t('product.organicYes')} color="success" variant="outlined" sx={{ alignSelf: 'flex-start' }} />
               )}
 
+              {/* Farmer contact */}
+              {product.farmerPhone && isAuthenticated && (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <PhoneIcon fontSize="small" color="action" />
+                  <Typography variant="body1">
+                    Farmer: {product.farmer?.fullName} · <a href={`tel:${product.farmerPhone}`} style={{ color: 'inherit' }}>📞 {product.farmerPhone}</a>
+                  </Typography>
+                </Stack>
+              )}
+
               {product.description && (
                 <>
                   <Divider />
@@ -141,11 +163,17 @@ export default function ProductDetail() {
                 {product.averageRating > 0 && ` • Rating: ${product.averageRating}/5`}
               </Typography>
 
-              {canOrder && (
-                <Button variant="contained" size="large" startIcon={<ShoppingCart />} onClick={() => setOrderOpen(true)}
-                  sx={{ fontWeight: 700, py: 1.5, borderRadius: 2 }}>
-                  {t('order.orderNow')}
-                </Button>
+              {isAuthenticated && !isOwner && (
+                <Stack direction="row" spacing={2}>
+                  <Button variant="contained" size="large" startIcon={<ShoppingCart />} onClick={handleAddToCart}
+                    sx={{ fontWeight: 700, py: 1.5, borderRadius: 2, flex: 1 }}>
+                    Add to Cart
+                  </Button>
+                  <Button variant="outlined" size="large" onClick={() => setOrderOpen(true)}
+                    sx={{ fontWeight: 700, py: 1.5, borderRadius: 2, flex: 1 }}>
+                    {t('order.orderNow')}
+                  </Button>
+                </Stack>
               )}
             </Stack>
           </Grid>
@@ -158,7 +186,8 @@ export default function ProductDetail() {
               <TextField label={t('order.quantity')} type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)}
                 helperText={`Available: ${product.quantityAvailable} ${UNIT_LABELS[product.unit] || product.unit}`}
                 inputProps={{ min: 0.01, step: 0.01, max: product.quantityAvailable }} />
-              <TextField label={t('order.deliveryAddress')} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} multiline rows={2} />
+              <TextField label={t('order.deliveryAddress')} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} multiline rows={2} required />
+              <TextField label="Payment Proof Image URL" value={paymentProofUrl} onChange={(e) => setPaymentProofUrl(e.target.value)} multiline rows={2} placeholder="Paste the URL of your payment screenshot (UPI/bank transfer proof)" />
               <TextField label={t('order.notes')} value={notes} onChange={(e) => setNotes(e.target.value)} multiline rows={2} />
               {quantity && parseFloat(quantity) > 0 && (
                 <Typography variant="h6" color="primary.main">
@@ -169,7 +198,7 @@ export default function ProductDetail() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOrderOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleOrder} variant="contained" disabled={ordering}>{ordering ? 'Placing...' : t('order.orderNow')}</Button>
+            <Button onClick={handleOrder} variant="contained" disabled={ordering}>{ordering ? <CircularProgress size={20} /> : t('order.orderNow')}</Button>
           </DialogActions>
         </Dialog>
       </Container>

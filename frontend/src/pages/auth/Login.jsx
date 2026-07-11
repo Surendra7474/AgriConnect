@@ -15,9 +15,11 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Agriculture } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +27,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const {
     register,
@@ -42,10 +45,18 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(data);
-      toast.success(`Welcome back, ${user.fullName}!`);
+      toast.success(t('auth.welcomeBack', { name: user.fullName }));
+      // Update preferred language on server
+      try {
+        await axios.put('/api/users/me/language', {
+          preferredLanguage: localStorage.getItem('i18nextLng'),
+        });
+      } catch {
+        // Silently ignore language update errors
+      }
       navigate(user.role === 'ADMIN' ? '/admin' : '/dashboard');
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const msg = err.response?.data?.message || t('common.error');
       setError(msg);
     } finally {
       setLoading(false);
@@ -74,10 +85,10 @@ export default function Login() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Agriculture sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
               <Typography variant="h4" sx={{ fontWeight: 800, fontFamily: '"Outfit", sans-serif' }}>
-                AgriConnect
+                {t('common.appName')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Sign in to your account
+                {t('auth.signIn')}
               </Typography>
             </Box>
 
@@ -89,14 +100,14 @@ export default function Login() {
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <TextField
-                label="Email"
+                label={t('auth.email')}
                 fullWidth
                 margin="normal"
                 {...register('email', {
-                  required: 'Email is required',
+                  required: t('common.required'),
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: 'Invalid email address',
+                    message: t('auth.email'),
                   },
                 })}
                 error={!!errors.email}
@@ -105,11 +116,11 @@ export default function Login() {
               />
 
               <TextField
-                label="Password"
+                label={t('auth.password')}
                 type={showPassword ? 'text' : 'password'}
                 fullWidth
                 margin="normal"
-                {...register('password', { required: 'Password is required' })}
+                {...register('password', { required: t('common.required') })}
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 autoComplete="current-password"
@@ -126,7 +137,7 @@ export default function Login() {
 
               <Box sx={{ textAlign: 'right', mt: 0.5, mb: 2 }}>
                 <Link component={RouterLink} to="/forgot-password" variant="body2" underline="hover">
-                  Forgot password?
+                  {t('auth.forgotPasswordQ')}
                 </Link>
               </Box>
 
@@ -138,15 +149,15 @@ export default function Login() {
                 disabled={loading}
                 sx={{ py: 1.5, fontSize: '1rem', fontWeight: 700 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+                {loading ? <CircularProgress size={24} color="inherit" /> : t('auth.signIn')}
               </Button>
             </form>
 
             <Box sx={{ textAlign: 'center', mt: 2.5 }}>
               <Typography variant="body2" color="text.secondary">
-                Don't have an account?{' '}
+                {t('auth.noAccount')}{' '}
                 <Link component={RouterLink} to="/register" underline="hover" fontWeight={700}>
-                  Create one
+                  {t('auth.createOne')}
                 </Link>
               </Typography>
             </Box>

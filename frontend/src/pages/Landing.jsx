@@ -1,26 +1,29 @@
 import { Link as RouterLink } from 'react-router-dom';
 import {
-  Box, Button, Card, CardContent, Container, Grid, Typography, Stack, Chip,
+  Box, Button, Card, CardContent, Container, Grid, Typography, Stack, IconButton,
 } from '@mui/material';
 import {
-  Agriculture, Build, People, Analytics, CheckCircle, Star,
+  Agriculture, Build, People, Analytics, CheckCircle, Star, Brightness4, Brightness7,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useThemeMode } from '../contexts/ThemeContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const features = [
-  { icon: <Build sx={{ fontSize: 40 }} />, title: 'Equipment Rental', desc: 'Rent tractors, harvesters, and more from trusted owners in your area.' },
-  { icon: <People sx={{ fontSize: 40 }} />, title: 'Hire Workers', desc: 'Connect with skilled agricultural workers for harvesting, irrigation, and more.' },
-  { icon: <Analytics sx={{ fontSize: 40 }} />, title: 'Crop Prediction', desc: 'Predict profitability with our rule-based engine using soil, water, and region data.' },
-  { icon: <CheckCircle sx={{ fontSize: 40 }} />, title: 'Trusted Marketplace', desc: 'Admin-verified equipment listings and worker profiles ensure safety.' },
-  { icon: <Star sx={{ fontSize: 40 }} />, title: 'Ratings & Reviews', desc: 'Rate equipment and workers to build a trusted community.' },
-  { icon: <Agriculture sx={{ fontSize: 40 }} />, title: 'Full Control', desc: 'Manage bookings, hiring requests, and feedback all in one place.' },
+  { icon: <Build sx={{ fontSize: 40 }} />, titleKey: 'landing.featureEquipmentRental', descKey: 'landing.featureEquipmentRentalDesc' },
+  { icon: <People sx={{ fontSize: 40 }} />, titleKey: 'landing.featureHireWorkers', descKey: 'landing.featureHireWorkersDesc' },
+  { icon: <Analytics sx={{ fontSize: 40 }} />, titleKey: 'landing.featureCropPrediction', descKey: 'landing.featureCropPredictionDesc' },
+  { icon: <CheckCircle sx={{ fontSize: 40 }} />, titleKey: 'landing.featureTrustedMarketplace', descKey: 'landing.featureTrustedMarketplaceDesc' },
+  { icon: <Star sx={{ fontSize: 40 }} />, titleKey: 'landing.featureRatings', descKey: 'landing.featureRatingsDesc' },
+  { icon: <Agriculture sx={{ fontSize: 40 }} />, titleKey: 'landing.featureFullControl', descKey: 'landing.featureFullControlDesc' },
 ];
 
 const roles = [
-  { title: 'Farmers', desc: 'Rent equipment, hire workers, predict crop profitability.' },
-  { title: 'Equipment Owners', desc: 'List your machinery and manage rental bookings.' },
-  { title: 'Workers', desc: 'Create your profile, accept hiring requests, build reputation.' },
-  { title: 'Admins', desc: 'Moderate the platform, approve listings, resolve feedback.' },
+  { titleKey: 'landing.farmers', descKey: 'landing.farmersDesc' },
+  { titleKey: 'landing.equipmentOwners', descKey: 'landing.equipmentOwnersDesc' },
+  { titleKey: 'landing.workers', descKey: 'landing.workersDesc' },
+  { titleKey: 'landing.admins', descKey: 'landing.adminsDesc' },
 ];
 
 const containerVariants = {
@@ -34,6 +37,9 @@ const itemVariants = {
 };
 
 export default function Landing() {
+  const { t } = useTranslation();
+  const { darkMode, toggleDarkMode } = useThemeMode();
+
   return (
     <Box>
       {/* Hero */}
@@ -48,28 +54,39 @@ export default function Landing() {
       >
         <Container maxWidth="lg">
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+            {/* Language Switcher & Theme Toggle - top right */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 3 }}>
+              <IconButton
+                onClick={toggleDarkMode}
+                sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}
+              >
+                {darkMode ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+              <LanguageSwitcher />
+            </Box>
+
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
               <Agriculture sx={{ fontSize: 48 }} />
               <Typography variant="h3" sx={{ fontWeight: 900, fontFamily: '"Outfit", sans-serif', letterSpacing: -1 }}>
-                AgriConnect
+                {t('common.appName')}
               </Typography>
             </Stack>
             <Typography variant="h5" sx={{ mb: 1, fontWeight: 600, maxWidth: 650 }}>
-              The complete agriculture management platform connecting farmers, equipment owners, and workers.
+              {t('landing.heroSubtitle')}
             </Typography>
             <Typography variant="body1" sx={{ mb: 4, maxWidth: 550, opacity: 0.9, fontSize: '1.1rem' }}>
-              Rent equipment, hire skilled workers, predict crop profitability, and manage your farm — all in one place.
+              {t('landing.heroDesc')}
             </Typography>
             <Stack direction="row" spacing={2}>
               <Button component={RouterLink} to="/register" variant="contained" size="large"
                 sx={{ bgcolor: 'white', color: '#1b4332', fontWeight: 800, px: 4, py: 1.5, fontSize: '1rem',
                   '&:hover': { bgcolor: '#e8f5e9' } }}>
-                Get Started
+                {t('landing.getStarted')}
               </Button>
               <Button component={RouterLink} to="/login" variant="outlined" size="large"
                 sx={{ borderColor: 'white', color: 'white', fontWeight: 700, px: 4, py: 1.5, fontSize: '1rem',
                   '&:hover': { borderColor: '#e8f5e9', bgcolor: 'rgba(255,255,255,0.1)' } }}>
-                Sign In
+                {t('auth.signIn')}
               </Button>
             </Stack>
           </motion.div>
@@ -80,16 +97,16 @@ export default function Landing() {
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}>
           <Typography variant="h4" align="center" sx={{ fontWeight: 800, mb: 5, fontFamily: '"Outfit", sans-serif' }}>
-            Who is AgriConnect for?
+            {t('landing.whoIsFor')}
           </Typography>
           <Grid container spacing={3}>
             {roles.map((role) => (
-              <Grid item xs={12} sm={6} md={3} key={role.title}>
+              <Grid item xs={12} sm={6} md={3} key={role.titleKey}>
                 <motion.div variants={itemVariants}>
                   <Card sx={{ height: '100%', textAlign: 'center', p: 2, border: '2px solid #1b4332', borderRadius: 3, boxShadow: '4px 4px 0 #1b4332' }}>
                     <CardContent>
-                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>{role.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">{role.desc}</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>{t(role.titleKey)}</Typography>
+                      <Typography variant="body2" color="text.secondary">{t(role.descKey)}</Typography>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -104,17 +121,17 @@ export default function Landing() {
         <Container maxWidth="lg">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={containerVariants}>
             <Typography variant="h4" align="center" sx={{ fontWeight: 800, mb: 5, fontFamily: '"Outfit", sans-serif' }}>
-              Platform Features
+              {t('landing.platformFeatures')}
             </Typography>
             <Grid container spacing={3}>
               {features.map((feature) => (
-                <Grid item xs={12} sm={6} md={4} key={feature.title}>
+                <Grid item xs={12} sm={6} md={4} key={feature.titleKey}>
                   <motion.div variants={itemVariants}>
                     <Card sx={{ height: '100%', border: '2px solid #1b4332', borderRadius: 3, boxShadow: '4px 4px 0 #1b4332', transition: '0.2s', '&:hover': { transform: 'translate(-2px, -2px)', boxShadow: '6px 6px 0 #1b4332' } }}>
                       <CardContent>
                         <Box sx={{ color: '#2d6a4f', mb: 1.5 }}>{feature.icon}</Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>{feature.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">{feature.desc}</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>{t(feature.titleKey)}</Typography>
+                        <Typography variant="body2" color="text.secondary">{t(feature.descKey)}</Typography>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -128,21 +145,21 @@ export default function Landing() {
       {/* CTA */}
       <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 }, textAlign: 'center' }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, fontFamily: '"Outfit", sans-serif' }}>
-          Ready to grow your farm?
+          {t('landing.readyToGrow')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 500, mx: 'auto' }}>
-          Join thousands of farmers, equipment owners, and workers already using AgriConnect.
+          {t('landing.readyDesc')}
         </Typography>
         <Button component={RouterLink} to="/register" variant="contained" size="large"
           sx={{ bgcolor: '#1b4332', fontWeight: 800, px: 5, py: 1.5, fontSize: '1rem', '&:hover': { bgcolor: '#2d6a4f' } }}>
-          Create Free Account
+          {t('landing.createFreeAccount')}
         </Button>
       </Container>
 
       {/* Footer */}
       <Box sx={{ bgcolor: '#1b4332', color: 'white', py: 3, textAlign: 'center' }}>
         <Typography variant="body2" sx={{ opacity: 0.7 }}>
-          &copy; {new Date().getFullYear()} AgriConnect. Built for agriculture.
+          &copy; {new Date().getFullYear()} {t('common.appName')}. {t('landing.builtForAgriculture')}
         </Typography>
       </Box>
     </Box>

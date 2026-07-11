@@ -82,15 +82,27 @@ public class ProductController {
         return ResponseEntity.ok(ResponseFactory.success("product.deleted", null));
     }
 
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProductResponse>> updateApprovalStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody ProductStatusUpdateRequest request
-    ) {
-        return ResponseEntity.ok(ResponseFactory.success(
-                "product.status.updated",
-                productService.updateApprovalStatus(id, request.status())
-        ));
-    }
+@PatchMapping("/{id}/status")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<ApiResponse<ProductResponse>> updateApprovalStatus(
+        @PathVariable Long id,
+        @Valid @RequestBody ProductStatusUpdateRequest request
+) {
+    return ResponseEntity.ok(ResponseFactory.success(
+            "product.status.updated",
+            productService.updateApprovalStatus(id, request.status())
+    ));
+}
+
+@PatchMapping("/{id}/quantity")
+@PreAuthorize("hasAnyRole('FARMER','ADMIN')")
+public ResponseEntity<ApiResponse<ProductResponse>> updateQuantity(
+        @PathVariable Long id,
+        @Valid @RequestBody com.agriconnect.dto.request.QuantityUpdateRequest request
+) {
+    return ResponseEntity.ok(ResponseFactory.success(
+            "product.quantity.updated",
+            productService.updateQuantity(id, request.quantity())
+    ));
+}
 }

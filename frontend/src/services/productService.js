@@ -7,6 +7,7 @@ export const productService = {
   create: (data) => api.post('/products', data),
   update: (id, data) => api.put(`/products/${id}`, data),
   delete: (id) => api.delete(`/products/${id}`),
+  updateQuantity: (id, data) => api.patch(`/products/${id}/quantity`, data),
 };
 
 export const productOrderService = {

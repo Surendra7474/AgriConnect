@@ -21,6 +21,7 @@ public record ProductResponse(
         String approvalStatus,
         Double averageRating,
         List<String> imageUrls,
+        String farmerPhone,
         Instant createdAt,
         Instant updatedAt
 ) {

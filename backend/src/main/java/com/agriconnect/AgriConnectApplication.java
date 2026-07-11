@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableMethodSecurity
 @EnableAsync
 @ConfigurationPropertiesScan
 public class AgriConnectApplication {

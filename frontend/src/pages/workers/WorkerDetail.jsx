@@ -71,8 +71,13 @@ const WorkerDetail = () => {
       const response = await workerService.getById(id);
       setWorker(response.data.data);
     } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to load worker details');
-      navigate('/workers');
+      const msg = error?.response?.data?.message || error?.message || 'Failed to load worker details';
+      console.error('WorkerDetail fetch error:', error?.response?.status, msg);
+      toast.error(msg);
+      // Only navigate back if worker truly doesn't exist (404), not on other errors
+      if (error?.response?.status === 404) {
+        navigate('/workers');
+      }
     } finally {
       setLoading(false);
     }
@@ -131,7 +136,15 @@ const WorkerDetail = () => {
   }
 
   if (!worker) {
-    return null;
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
+        <Typography variant="h5" color="text.secondary">Worker not found</Typography>
+        <Typography variant="body2" color="text.disabled" sx={{ mt: 1, mb: 3 }}>
+          The worker you are looking for does not exist or is not available.
+        </Typography>
+        <Button variant="contained" onClick={() => navigate('/workers')}>Back to Workers</Button>
+      </Container>
+    );
   }
 
   const workerName = worker.user?.fullName || 'Unknown Worker';

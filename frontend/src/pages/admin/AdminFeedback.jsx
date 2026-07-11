@@ -189,7 +189,7 @@ export default function AdminFeedback() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {fb.userName || fb.userFullName || 'Anonymous'}
+                          {fb.submittedBy?.fullName || fb.userName || fb.userFullName || 'Anonymous'}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -282,7 +282,7 @@ export default function AdminFeedback() {
               <Box>
                 <Typography variant="caption" color="text.secondary">Submitted By</Typography>
                 <Typography variant="body2">
-                  {selectedFeedback.userName || selectedFeedback.userFullName || 'Anonymous'}
+                  {selectedFeedback.submittedBy?.fullName || selectedFeedback.userName || selectedFeedback.userFullName || 'Anonymous'}
                 </Typography>
               </Box>
               <Box>
@@ -299,11 +299,11 @@ export default function AdminFeedback() {
                   <Typography variant="body2">{selectedFeedback.message}</Typography>
                 </Paper>
               </Box>
-              {selectedFeedback.adminNotes && (
+              {selectedFeedback.adminResolution && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Admin Notes</Typography>
+                  <Typography variant="caption" color="text.secondary">Admin Resolution</Typography>
                   <Paper variant="outlined" sx={{ p: 2, mt: 0.5, bgcolor: 'background.default' }}>
-                    <Typography variant="body2">{selectedFeedback.adminNotes}</Typography>
+                    <Typography variant="body2">{selectedFeedback.adminResolution}</Typography>
                   </Paper>
                 </Box>
               )}

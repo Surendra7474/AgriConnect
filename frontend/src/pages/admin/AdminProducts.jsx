@@ -6,7 +6,7 @@ import {
   Pagination, TextField, MenuItem, FormControl, InputLabel, Select,
   InputAdornment, IconButton,
 } from '@mui/material';
-import { Search as SearchIcon, Clear as ClearIcon, Agriculture as AgriIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Clear as ClearIcon, Delete as DeleteIcon, Agriculture as AgriIcon } from '@mui/icons-material';
 import PageHeader from '../../components/PageHeader';
 import EmptyState from '../../components/EmptyState';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
@@ -54,6 +54,17 @@ export default function AdminProducts() {
       toast.error(err?.response?.data?.message || 'Failed to update product');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handleDelete = async (productId) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await adminService.deleteProduct(productId);
+      toast.success('Product deleted successfully');
+      fetchProducts();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to delete product');
     }
   };
 
@@ -112,18 +123,23 @@ export default function AdminProducts() {
                       <Typography variant="caption" color="text.secondary">
                         {new Date(product.createdAt).toLocaleDateString()}
                       </Typography>
-                      {product.approvalStatus === 'PENDING' && (
-                        <Stack direction="row" spacing={0.5}>
-                          <Button size="small" variant="contained" color="success" disabled={updating === product.id}
-                            onClick={() => handleStatusUpdate(product.id, 'APPROVED')}>
-                            {updating === product.id ? '...' : 'Approve'}
-                          </Button>
-                          <Button size="small" variant="contained" color="error" disabled={updating === product.id}
-                            onClick={() => handleStatusUpdate(product.id, 'REJECTED')}>
-                            Reject
-                          </Button>
-                        </Stack>
-                      )}
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        {product.approvalStatus === 'PENDING' && (
+                          <>
+                            <Button size="small" variant="contained" color="success" disabled={updating === product.id}
+                              onClick={() => handleStatusUpdate(product.id, 'APPROVED')}>
+                              {updating === product.id ? '...' : 'Approve'}
+                            </Button>
+                            <Button size="small" variant="contained" color="error" disabled={updating === product.id}
+                              onClick={() => handleStatusUpdate(product.id, 'REJECTED')}>
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        <IconButton size="small" color="error" onClick={() => handleDelete(product.id)} title="Delete">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
                     </Stack>
                   </Stack>
                 </CardContent>

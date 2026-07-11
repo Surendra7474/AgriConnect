@@ -92,9 +92,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = new Equipment();
         equipment.setOwner(currentUser);
         applyRequest(equipment, request);
-        equipment.setApprovalStatus(currentUserProvider.hasRole(currentUser, RoleName.ADMIN)
-                ? EquipmentStatus.APPROVED
-                : EquipmentStatus.PENDING);
+        equipment.setApprovalStatus(EquipmentStatus.APPROVED);
 
         Equipment saved = equipmentRepository.save(equipment);
         return equipmentMapper.toResponse(saved);
@@ -107,9 +105,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         requireEquipmentManager(currentUser, equipment);
 
         applyRequest(equipment, request);
-        if (!currentUserProvider.hasRole(currentUser, RoleName.ADMIN)) {
-            equipment.setApprovalStatus(EquipmentStatus.PENDING);
-        }
+        equipment.setApprovalStatus(EquipmentStatus.APPROVED);
         return equipmentMapper.toResponse(equipmentRepository.save(equipment));
     }
 

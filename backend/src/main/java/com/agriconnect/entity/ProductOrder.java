@@ -51,4 +51,10 @@ public class ProductOrder extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Column(columnDefinition = "TEXT")
+    private String cancellationReason;
+
+    @Column(length = 500)
+    private String paymentProofUrl;
 }

@@ -11,6 +11,8 @@ public record AuthResponse(
         Long userId,
         String fullName,
         String email,
+        String phone,
+        String preferredLanguage,
         String role,
         List<String> permissions
 ) {

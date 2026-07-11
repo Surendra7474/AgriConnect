@@ -16,6 +16,8 @@ public record ProductOrderResponse(
         String status,
         String paymentStatus,
         String notes,
+        String cancellationReason,
+        String paymentProofUrl,
         Instant createdAt,
         Instant updatedAt
 ) {

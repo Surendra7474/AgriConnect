@@ -73,9 +73,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         product.setFarmer(currentUser);
         applyRequest(product, request);
-        product.setApprovalStatus(currentUserProvider.hasRole(currentUser, RoleName.ADMIN)
-                ? ProductStatus.APPROVED
-                : ProductStatus.PENDING);
+        product.setApprovalStatus(ProductStatus.APPROVED);
 
         Product saved = productRepository.save(product);
         return productMapper.toResponse(saved);
@@ -88,9 +86,8 @@ public class ProductServiceImpl implements ProductService {
         requireProductManager(currentUser, product);
 
         applyRequest(product, request);
-        if (!currentUserProvider.hasRole(currentUser, RoleName.ADMIN)) {
-            product.setApprovalStatus(ProductStatus.PENDING);
-        }
+        // Products stay APPROVED after edits (no admin re-approval needed)
+        product.setApprovalStatus(ProductStatus.APPROVED);
         return productMapper.toResponse(productRepository.save(product));
     }
 
@@ -130,6 +127,15 @@ public class ProductServiceImpl implements ProductService {
                 saved.getId().toString()
         );
         return productMapper.toResponse(saved);
+    }
+
+    @Override
+    public ProductResponse updateQuantity(Long productId, java.math.BigDecimal quantity) {
+        User currentUser = currentUserProvider.getCurrentUser();
+        Product product = findProduct(productId);
+        requireProductManager(currentUser, product);
+        product.setQuantityAvailable(quantity);
+        return productMapper.toResponse(productRepository.save(product));
     }
 
     @Override

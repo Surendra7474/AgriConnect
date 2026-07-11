@@ -1,1 +1,39 @@
-Hello
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+*.nar
+*.zip
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Generated
+frontend/public/
+uploads/
+backend/uploads/
+
+# Temp
+query
+task_progress.md
+*.log

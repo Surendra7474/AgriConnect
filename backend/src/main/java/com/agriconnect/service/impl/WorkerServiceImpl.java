@@ -97,6 +97,7 @@ public class WorkerServiceImpl implements WorkerService {
         WorkerProfile profile = workerProfileRepository.findByUser(currentUser).orElseGet(() -> {
             WorkerProfile newProfile = new WorkerProfile();
             newProfile.setUser(currentUser);
+            // Only set PENDING for new (first-time) profiles
             newProfile.setApprovalStatus(WorkerApprovalStatus.PENDING);
             return newProfile;
         });
@@ -106,6 +107,8 @@ public class WorkerServiceImpl implements WorkerService {
         profile.setBio(clean(request.bio()));
         profile.setPhoneNumber(clean(request.phoneNumber()));
         profile.setAvailable(request.available() == null || request.available());
+
+        // Do NOT reset approvalStatus for existing profiles - edits go live immediately without admin re-approval
 
         return workerMapper.toResponse(workerProfileRepository.save(profile));
     }

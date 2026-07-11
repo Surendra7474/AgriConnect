@@ -19,6 +19,9 @@ public record ProductOrderRequest(
         @Size(max = 2000)
         String deliveryAddress,
 
+        @Size(max = 500)
+        String paymentProofUrl,
+
         @Size(max = 1000)
         String notes
 ) {

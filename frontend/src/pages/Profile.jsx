@@ -15,11 +15,12 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { Person, Email, Phone, Badge, Visibility, VisibilityOff, Lock } from '@mui/icons-material';
+import { Person, Email, Phone, Badge, Visibility, VisibilityOff, Lock, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
+import { userService } from '../services/userService';
 import PageHeader from '../components/PageHeader';
 import { ROLES } from '../constants';
 
@@ -49,8 +50,10 @@ function getRoleLabel(role) {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
+  const [editing, setEditing] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -71,21 +74,72 @@ export default function Profile() {
     },
   });
 
+  const {
+    register: registerEdit,
+    handleSubmit: handleSubmitEdit,
+    reset: resetEdit,
+    formState: { errors: editErrors },
+  } = useForm({
+    defaultValues: {
+      fullName: user?.fullName || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+    },
+  });
+
   const newPasswordValue = watch('newPassword');
 
   const onPasswordSubmit = async (data) => {
     setPasswordError('');
     setPasswordLoading(true);
     try {
-      // Password change endpoint is not available in current API;
-      // This is a placeholder for future implementation.
-      toast.error('Password change is not available yet. This feature is coming soon.');
+      await userService.changePassword({
+        currentPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
+      toast.success('Password changed successfully');
       reset();
-    } catch {
-      setPasswordError('Failed to change password');
+    } catch (err) {
+      setPasswordError(err?.response?.data?.message || 'Failed to change password');
     } finally {
       setPasswordLoading(false);
     }
+  };
+
+  const onEditSubmit = async (data) => {
+    setEditLoading(true);
+    try {
+      const response = await userService.updateProfile({
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+      });
+      const updated = response.data.data;
+      const newUserData = {
+        id: updated.id || user.id,
+        fullName: updated.fullName,
+        email: updated.email,
+        phone: updated.phone,
+        preferredLanguage: updated.preferredLanguage || user.preferredLanguage,
+        role: updated.role || user.role,
+      };
+      refreshUser(newUserData);
+      toast.success('Profile updated successfully');
+      setEditing(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    resetEdit({
+      fullName: user?.fullName || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+    });
+    setEditing(false);
   };
 
   return (
@@ -189,48 +243,123 @@ export default function Profile() {
                 <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
                     <Person sx={{ color: 'primary.main' }} />
-                    <Typography variant="h6" fontWeight={700}>
+                    <Typography variant="h6" fontWeight={700} sx={{ flexGrow: 1 }}>
                       Account Information
                     </Typography>
+                    {!editing && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={() => setEditing(true)}
+                      >
+                        Edit
+                      </Button>
+                    )}
                   </Stack>
 
-                  <Grid container spacing={2.5}>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Full Name"
-                        fullWidth
-                        value={user?.fullName || ''}
-                        InputProps={{ readOnly: true }}
-                        helperText="Contact support to update your name"
-                      />
+                  {editing ? (
+                    <Box component="form" onSubmit={handleSubmitEdit(onEditSubmit)}>
+                      <Grid container spacing={2.5}>
+                        <Grid item xs={12}>
+                          <TextField
+                            label="Full Name"
+                            fullWidth
+                            {...registerEdit('fullName', {
+                              required: 'Name is required',
+                              minLength: { value: 2, message: 'Name must be at least 2 characters' },
+                            })}
+                            error={!!editErrors.fullName}
+                            helperText={editErrors.fullName?.message}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Email"
+                            fullWidth
+                            {...registerEdit('email', {
+                              required: 'Email is required',
+                              pattern: {
+                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                message: 'Invalid email format',
+                              },
+                            })}
+                            error={!!editErrors.email}
+                            helperText={editErrors.email?.message}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Phone"
+                            fullWidth
+                            {...registerEdit('phone', {
+                              pattern: {
+                                value: /^[0-9+() -]{7,20}$/,
+                                message: 'Invalid phone format',
+                              },
+                            })}
+                            error={!!editErrors.phone}
+                            helperText={editErrors.phone?.message}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Stack direction="row" spacing={2}>
+                            <Button
+                              type="submit"
+                              variant="contained"
+                              startIcon={editLoading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                              disabled={editLoading}
+                            >
+                              {editLoading ? 'Saving...' : 'Save'}
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              startIcon={<CancelIcon />}
+                              onClick={handleCancelEdit}
+                              disabled={editLoading}
+                            >
+                              Cancel
+                            </Button>
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  ) : (
+                    <Grid container spacing={2.5}>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Full Name"
+                          fullWidth
+                          value={user?.fullName || ''}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Email"
+                          fullWidth
+                          value={user?.email || ''}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Phone"
+                          fullWidth
+                          value={user?.phone || 'Not provided'}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Role"
+                          fullWidth
+                          value={getRoleLabel(user?.role)}
+                          InputProps={{ readOnly: true }}
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="Email"
-                        fullWidth
-                        value={user?.email || ''}
-                        InputProps={{ readOnly: true }}
-                        helperText="Contact support to update your email"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        label="Phone"
-                        fullWidth
-                        value={user?.phone || 'Not provided'}
-                        InputProps={{ readOnly: true }}
-                        helperText="Contact support to update your phone"
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Role"
-                        fullWidth
-                        value={getRoleLabel(user?.role)}
-                        InputProps={{ readOnly: true }}
-                      />
-                    </Grid>
-                  </Grid>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

@@ -12,6 +12,8 @@ import com.agriconnect.security.CurrentUserProvider;
 import com.agriconnect.util.ResponseFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +24,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+() -]{7,20}$");
 
     private final CurrentUserProvider currentUserProvider;
     private final UserRepository userRepository;
@@ -39,21 +45,44 @@ public class UserController {
         return ResponseEntity.ok(ResponseFactory.success("user.profile.fetched", userMapper.toSummary(user)));
     }
 
-    @PutMapping("/me")
-    public ResponseEntity<ApiResponse<UserSummaryResponse>> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
-        User user = currentUserProvider.getCurrentUser();
+@PutMapping("/me")
+public ResponseEntity<ApiResponse<UserSummaryResponse>> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
+    User user = currentUserProvider.getCurrentUser();
+    try {
         if (request.fullName() != null && !request.fullName().isBlank()) {
             user.setFullName(request.fullName().trim());
         }
+        if (request.email() != null && !request.email().isBlank()) {
+            String newEmail = request.email().trim().toLowerCase();
+            if (!newEmail.equals(user.getEmail())) {
+                if (userRepository.existsByEmailIgnoreCase(newEmail)) {
+                    throw new BadRequestException("auth.email.already.registered");
+                }
+                user.setEmail(newEmail);
+            }
+        }
         if (request.phone() != null && !request.phone().isBlank()) {
-            user.setPhone(request.phone().trim());
+            String phone = request.phone().trim();
+            if (!PHONE_PATTERN.matcher(phone).matches()) {
+                throw new BadRequestException("Phone number format is invalid. Use digits, +, -, (, ) or spaces (7-20 characters).");
+            }
+            user.setPhone(phone);
         }
         if (request.preferredLanguage() != null && !request.preferredLanguage().isBlank()) {
             user.setPreferredLanguage(request.preferredLanguage().trim().toLowerCase());
         }
         User saved = userRepository.save(user);
         return ResponseEntity.ok(ResponseFactory.success("user.profile.updated", userMapper.toSummary(saved)));
+    } catch (DataIntegrityViolationException e) {
+        log.error("Phone number likely duplicate for user {}: {}", user.getId(), request.phone(), e);
+        throw new BadRequestException("Phone number is already in use by another account.");
+    } catch (BadRequestException e) {
+        throw e;
+    } catch (Exception e) {
+        log.error("Unexpected error updating profile for user {}: {}", user.getId(), e.getMessage(), e);
+        throw new BadRequestException("Failed to update profile: " + e.getMessage());
     }
+}
 
     @PutMapping("/me/language")
     public ResponseEntity<ApiResponse<UserSummaryResponse>> updateLanguage(@Valid @RequestBody Map<String, String> request) {

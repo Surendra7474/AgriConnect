@@ -59,15 +59,7 @@ public class AdminServiceImpl implements AdminService {
         return new AdminDashboardResponse(
                 userRepository.count(),
                 userRepository.countByActiveTrue(),
-                equipmentRepository.countByApprovalStatus(EquipmentStatus.PENDING),
-                equipmentRepository.countByApprovalStatus(EquipmentStatus.APPROVED),
-                workerProfileRepository.countByApprovalStatus(WorkerApprovalStatus.PENDING),
-                workerProfileRepository.countByApprovalStatus(WorkerApprovalStatus.APPROVED),
                 feedbackRepository.countByStatus(FeedbackStatus.OPEN),
-                equipmentBookingRepository.countByStatus(BookingStatus.PENDING),
-                workerHiringRepository.countByStatus(HiringStatus.PENDING),
-                productService.countByApprovalStatus(ProductStatus.PENDING),
-                productService.countByApprovalStatus(ProductStatus.APPROVED),
                 productOrderService.countByStatus(OrderStatus.PENDING),
                 productOrderService.countAllOrders(),
                 productOrderService.sumTotalPaidAmount()

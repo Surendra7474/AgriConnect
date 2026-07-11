@@ -31,14 +31,14 @@ public class ProductOrderController {
     private final ProductOrderService productOrderService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('BUYER','FARMER','ADMIN')")
+    @PreAuthorize("hasAnyRole('BUYER','FARMER','EQUIPMENT_OWNER','WORKER','ADMIN')")
     public ResponseEntity<ApiResponse<ProductOrderResponse>> placeOrder(@Valid @RequestBody ProductOrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ResponseFactory.success("order.placed", productOrderService.placeOrder(request)));
     }
 
     @GetMapping("/mine")
-    @PreAuthorize("hasAnyRole('BUYER','FARMER','ADMIN')")
+    @PreAuthorize("hasAnyRole('BUYER','FARMER','EQUIPMENT_OWNER','WORKER','ADMIN')")
     public ResponseEntity<ApiResponse<PageResponse<ProductOrderResponse>>> listMyOrders(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
