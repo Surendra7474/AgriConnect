@@ -5,7 +5,7 @@
   "installCommand": "npm install",
   "build": {
     "env": {
-      "VITE_API_URL": "https://agriconnect-2-lpgo.onrender.com"
+      "VITE_API_URL": "https://agriconnect-backend-ff1i.onrender.com"
     }
   },
   "rewrites": [
