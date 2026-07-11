@@ -30,7 +30,7 @@ services:
       - key: JWT_SECRET
         value: AgriConnectSupabaseJWTSecretKey2026!Secure
       - key: FRONTEND_URL
-        value: https://agriconnect-frontend-xi.vercel.app
+        value: https://agri-connect-two-eta.vercel.app
       - key: ADMIN_DEFAULT_EMAIL
         value: admin@agriconnect.local
       - key: ADMIN_DEFAULT_PASSWORD
