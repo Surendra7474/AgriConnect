@@ -11,6 +11,13 @@ export const productService = {
 };
 
 export const productOrderService = {
+  uploadPaymentProof: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   placeOrder: (data) => api.post('/product-orders', data),
   listMyOrders: (params) => api.get('/product-orders/mine', { params }),
   listIncomingOrders: (params) => api.get('/product-orders/incoming', { params }),

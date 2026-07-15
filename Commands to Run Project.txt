@@ -1,0 +1,3 @@
+to run backend from project root dir ----> java -jar backend\target\agriconnect-backend-1.0.0.jar
+
+to run frontend ----> cd frontend && npx vite

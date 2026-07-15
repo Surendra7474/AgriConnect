@@ -146,6 +146,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         booking.setReturnDate(request.returnDate());
         booking.setTotalAmount(totalAmount);
         booking.setStatus(BookingStatus.PENDING);
+        booking.setPaymentProofUrl(request.paymentProofUrl());
         booking.setNotes(request.notes());
 
         EquipmentBooking saved = equipmentBookingRepository.save(booking);

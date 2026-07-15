@@ -156,6 +156,7 @@ const Bookings = () => {
                     <TableCell sx={{ fontWeight: 700 }}>Start Date</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>End Date</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Total Amount</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Payment Proof</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
                   </TableRow>
@@ -172,51 +173,75 @@ const Bookings = () => {
                           : booking.farmerName || booking.user?.fullName || booking.farmer?.fullName || 'N/A'}
                       </TableCell>
                       <TableCell>{formatDate(booking.bookingDate)}</TableCell>
-                      <TableCell>{formatDate(booking.endDate)}</TableCell>
+                      <TableCell>{formatDate(booking.returnDate)}</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>
                         ₹{booking.totalAmount?.toLocaleString?.() || booking.totalAmount || 0}
+                      </TableCell>
+                      <TableCell>
+                        {booking.paymentProofUrl ? (
+                          <Box
+                            component="img"
+                            src={booking.paymentProofUrl}
+                            alt="Payment proof"
+                            onClick={() => window.open(booking.paymentProofUrl, '_blank')}
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 1,
+                              objectFit: 'cover',
+                              cursor: 'pointer',
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              '&:hover': { opacity: 0.8 },
+                            }}
+                          />
+                        ) : (
+                          <Typography variant="body2" color="text.disabled">
+                            —
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <StatusChip status={booking.status} />
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5}>
-          {isFarmer && (booking.status === BOOKING_STATUS.PENDING || booking.status === BOOKING_STATUS.APPROVED) && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              startIcon={<CancelIcon />}
-              onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.CANCELLED)}
-              disabled={actionLoading === booking.id}
-            >
-              Cancel
-            </Button>
-          )}
-          {isEquipmentOwner && booking.status === BOOKING_STATUS.PENDING && (
-            <>
-              <Button
-                size="small"
-                variant="contained"
-                color="success"
-                startIcon={<ApproveIcon />}
-                onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.APPROVED)}
-                disabled={actionLoading === booking.id}
-              >
-                Approve
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                color="error"
-                startIcon={<RejectIcon />}
-                onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.REJECTED)}
-                disabled={actionLoading === booking.id}
-              >
-                Reject
-              </Button>
-            </>
-          )}
+                          {isFarmer && (booking.status === BOOKING_STATUS.PENDING || booking.status === BOOKING_STATUS.APPROVED) && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                              startIcon={<CancelIcon />}
+                              onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.CANCELLED)}
+                              disabled={actionLoading === booking.id}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                          {isEquipmentOwner && booking.status === BOOKING_STATUS.PENDING && (
+                            <>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                startIcon={<ApproveIcon />}
+                                onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.APPROVED)}
+                                disabled={actionLoading === booking.id}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                startIcon={<RejectIcon />}
+                                onClick={() => handleUpdateStatus(booking.id, BOOKING_STATUS.REJECTED)}
+                                disabled={actionLoading === booking.id}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>

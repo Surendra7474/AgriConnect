@@ -14,6 +14,7 @@ public record EquipmentBookingResponse(
         LocalDate returnDate,
         BigDecimal totalAmount,
         String status,
+        String paymentProofUrl,
         String notes,
         Instant createdAt,
         Instant updatedAt

@@ -19,6 +19,7 @@ public record ProductOrderRequest(
         @Size(max = 2000)
         String deliveryAddress,
 
+        @NotBlank
         @Size(max = 500)
         String paymentProofUrl,
 

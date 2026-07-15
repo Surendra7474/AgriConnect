@@ -42,6 +42,9 @@ public class EquipmentBooking extends BaseEntity {
     @Column(nullable = false, length = 50)
     private BookingStatus status = BookingStatus.PENDING;
 
+    @Column(nullable = false, length = 500)
+    private String paymentProofUrl;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 }

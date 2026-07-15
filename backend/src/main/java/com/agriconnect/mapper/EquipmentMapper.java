@@ -56,6 +56,7 @@ public class EquipmentMapper {
                 booking.getReturnDate(),
                 booking.getTotalAmount(),
                 booking.getStatus().name(),
+                booking.getPaymentProofUrl(),
                 booking.getNotes(),
                 booking.getCreatedAt(),
                 booking.getUpdatedAt()

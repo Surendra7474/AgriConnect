@@ -75,7 +75,7 @@ class ProductOrderServiceImplTest {
         Product product = product(1L, "Tomatoes", ProductStatus.APPROVED, farmer);
         product.setQuantityAvailable(BigDecimal.valueOf(5));
         ProductOrderRequest request = new ProductOrderRequest(
-                1L, BigDecimal.valueOf(10), "Address 1", null
+                1L, BigDecimal.valueOf(10), "Address 1", null, null
         );
 
         when(currentUserProvider.getCurrentUser()).thenReturn(buyer);
@@ -93,7 +93,7 @@ class ProductOrderServiceImplTest {
         User farmer = farmer(1L);
         Product product = product(1L, "Tomatoes", ProductStatus.APPROVED, farmer);
         ProductOrderRequest request = new ProductOrderRequest(
-                1L, BigDecimal.valueOf(2), "Address 1", null
+                1L, BigDecimal.valueOf(2), "Address 1", null, null
         );
 
         when(currentUserProvider.getCurrentUser()).thenReturn(farmer);
@@ -113,7 +113,7 @@ class ProductOrderServiceImplTest {
         Product product = product(1L, "Tomatoes", ProductStatus.APPROVED, farmer);
         product.setQuantityAvailable(BigDecimal.valueOf(100));
         ProductOrderRequest request = new ProductOrderRequest(
-                1L, BigDecimal.valueOf(3), "Address 1", null
+                1L, BigDecimal.valueOf(3), "Address 1", null, null
         );
         ProductOrder savedOrder = order(product, buyer, OrderStatus.PENDING, BigDecimal.valueOf(3));
 
@@ -134,7 +134,7 @@ class ProductOrderServiceImplTest {
     void placeOrderShouldThrowWhenProductNotFound() {
         User buyer = buyer(1L);
         ProductOrderRequest request = new ProductOrderRequest(
-                999L, BigDecimal.ONE, "Addr", null
+                999L, BigDecimal.ONE, "Addr", null, null
         );
 
         when(currentUserProvider.getCurrentUser()).thenReturn(buyer);
@@ -268,8 +268,6 @@ class ProductOrderServiceImplTest {
 
     @Test
     void updateStatusShouldThrowWhenOrderNotFound() {
-        User user = buyer(1L);
-
         when(productOrderRepository.findById(999L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
@@ -363,7 +361,7 @@ class ProductOrderServiceImplTest {
                 new UserSummaryResponse(1L, "Buyer", "buyer@test.com", null, "BUYER", true, false, null, "en", Instant.now()),
                 new UserSummaryResponse(2L, "Farmer", "farmer@test.com", null, "FARMER", true, false, null, "en", Instant.now()),
                 BigDecimal.ONE, BigDecimal.valueOf(50), BigDecimal.valueOf(50),
-                "Addr", status, "UNPAID", null, Instant.now(), Instant.now()
+                "Addr", status, "UNPAID", null, null, null, Instant.now(), Instant.now()
         );
     }
 }

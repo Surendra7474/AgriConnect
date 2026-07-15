@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -22,6 +22,7 @@ import {
   DialogContent,
   DialogActions,
   Rating,
+  CircularProgress,
 } from '@mui/material';
 import {
   LocationOn as LocationIcon,
@@ -32,6 +33,8 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon,
   Build as BuildIcon,
+  AddPhotoAlternate as AddPhotoIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 
 import PageHeader from '../../components/PageHeader';
@@ -51,12 +54,16 @@ const EquipmentDetail = () => {
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [paymentProofUrl, setPaymentProofUrl] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const fileInputRef = useRef(null);
 
   const {
     register,
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -113,27 +120,56 @@ const EquipmentDetail = () => {
     }
   };
 
+  const handlePaymentProofUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingProof(true);
+    try {
+      const res = await equipmentService.uploadFile(file);
+      const url = res.data.data?.url;
+      if (url) {
+        setPaymentProofUrl(url);
+        toast.success('Payment proof uploaded!');
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to upload payment proof');
+    } finally {
+      setUploadingProof(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleBookingSubmit = async (data) => {
+    if (!paymentProofUrl) {
+      toast.warning('Please upload a payment proof image first');
+      return;
+    }
     setBookingLoading(true);
     try {
-      const start = new Date(data.bookingDate);
-      const end = new Date(data.endDate);
-      const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-
       await equipmentService.createBooking({
         equipmentId: equipment.id,
         bookingDate: data.bookingDate,
         returnDate: data.endDate,
+        paymentProofUrl,
         notes: data.notes || '',
       });
       toast.success('Booking request sent successfully!');
       setBookingDialogOpen(false);
+      setPaymentProofUrl('');
       reset();
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Failed to create booking');
     } finally {
       setBookingLoading(false);
     }
+  };
+
+  const handleCloseBookingDialog = () => {
+    setBookingDialogOpen(false);
+    setPaymentProofUrl('');
+    reset();
   };
 
   const isOwner =
@@ -304,7 +340,7 @@ const EquipmentDetail = () => {
                 </Grid>
               </Paper>
 
-              {/* Image Gallery Placeholder */}
+              {/* Image Gallery */}
               {equipment.imageUrls && equipment.imageUrls.length > 1 && (
                 <Paper sx={{ p: 3, borderRadius: 3 }}>
                   <Typography variant="h6" gutterBottom fontWeight={600}>
@@ -440,7 +476,7 @@ const EquipmentDetail = () => {
         {/* Booking Dialog */}
         <Dialog
           open={bookingDialogOpen}
-          onClose={() => setBookingDialogOpen(false)}
+          onClose={handleCloseBookingDialog}
           maxWidth="sm"
           fullWidth
         >
@@ -486,6 +522,81 @@ const EquipmentDetail = () => {
                   error={!!errors.endDate}
                   helperText={errors.endDate?.message}
                 />
+
+                {/* Payment Proof Upload */}
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom fontWeight={600}>
+                    Payment Proof *
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    Upload a screenshot or photo of your payment transaction as proof.
+                  </Typography>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handlePaymentProofUpload}
+                  />
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Button
+                      variant="outlined"
+                      component="span"
+                      startIcon={uploadingProof ? <CircularProgress size={18} /> : <AddPhotoIcon />}
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingProof}
+                    >
+                      {uploadingProof ? 'Uploading...' : 'Upload Proof'}
+                    </Button>
+                    {paymentProofUrl && (
+                      <Chip
+                        icon={<CheckCircleIcon />}
+                        label="Uploaded"
+                        color="success"
+                        size="small"
+                      />
+                    )}
+                  </Stack>
+                  {paymentProofUrl && (
+                    <Box sx={{ mt: 1.5, position: 'relative', display: 'inline-block' }}>
+                      <Box
+                        component="img"
+                        src={paymentProofUrl}
+                        alt="Payment proof"
+                        sx={{
+                          width: 120,
+                          height: 80,
+                          objectFit: 'cover',
+                          borderRadius: 2,
+                          border: '2px solid',
+                          borderColor: 'success.main',
+                        }}
+                      />
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        sx={{
+                          position: 'absolute',
+                          top: -8,
+                          right: -8,
+                          minWidth: 24,
+                          width: 24,
+                          height: 24,
+                          borderRadius: '50%',
+                          p: 0,
+                          fontSize: 14,
+                          lineHeight: 1,
+                          backgroundColor: 'background.paper',
+                        }}
+                        onClick={() => setPaymentProofUrl('')}
+                      >
+                        ×
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+
                 <TextField
                   label="Notes (optional)"
                   fullWidth
@@ -517,11 +628,11 @@ const EquipmentDetail = () => {
               </Stack>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 3 }}>
-              <Button onClick={() => setBookingDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleCloseBookingDialog}>Cancel</Button>
               <Button
                 type="submit"
                 variant="contained"
-                disabled={bookingLoading || totalAmount <= 0}
+                disabled={bookingLoading || totalAmount <= 0 || !paymentProofUrl}
               >
                 {bookingLoading ? 'Sending...' : 'Confirm Booking'}
               </Button>

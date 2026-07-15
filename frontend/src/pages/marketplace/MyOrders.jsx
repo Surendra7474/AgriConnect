@@ -81,6 +81,24 @@ export default function MyOrders() {
                       <Typography variant="body2" fontWeight={600} color="primary.main">
                         Total: ₹{order.totalAmount}
                       </Typography>
+                      {order.paymentProofUrl && (
+                        <Box
+                          component="img"
+                          src={order.paymentProofUrl}
+                          alt="Payment proof"
+                          onClick={(e) => e.stopPropagation()}
+                          sx={{
+                            mt: 1,
+                            width: 72,
+                            height: 72,
+                            objectFit: 'cover',
+                            borderRadius: 2,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            cursor: 'zoom-in',
+                          }}
+                        />
+                      )}
                     </Box>
                     <Stack alignItems="flex-end" spacing={0.5}>
                       <StatusChip status={order.status} />

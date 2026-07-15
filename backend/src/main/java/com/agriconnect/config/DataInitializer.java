@@ -1,22 +1,28 @@
 package com.agriconnect.config;
 
 import com.agriconnect.constant.RoleName;
+import com.agriconnect.constant.WorkerApprovalStatus;
 import com.agriconnect.entity.Role;
 import com.agriconnect.entity.User;
+import com.agriconnect.entity.WorkerProfile;
 import com.agriconnect.repository.RoleRepository;
 import com.agriconnect.repository.UserRepository;
+import com.agriconnect.repository.WorkerProfileRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final WorkerProfileRepository workerProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppProperties appProperties;
 
@@ -31,6 +37,24 @@ public class DataInitializer implements CommandLineRunner {
             });
         }
         createDefaultAdmin();
+        migrateWorkerProfiles();
+    }
+
+    /**
+     * Migrate existing PENDING worker profiles to APPROVED.
+     * This handles legacy profiles created before auto-approve was enabled in
+     * upsertMyProfile(). Without this, those profiles remain invisible to farmers.
+     */
+    private void migrateWorkerProfiles() {
+        java.util.List<WorkerProfile> pendingProfiles =
+                workerProfileRepository.findByApprovalStatus(WorkerApprovalStatus.PENDING, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        if (!pendingProfiles.isEmpty()) {
+            for (WorkerProfile profile : pendingProfiles) {
+                profile.setApprovalStatus(WorkerApprovalStatus.APPROVED);
+            }
+            workerProfileRepository.saveAll(pendingProfiles);
+            log.info("Migrated {} PENDING worker profiles to APPROVED", pendingProfiles.size());
+        }
     }
 
     private void createDefaultAdmin() {

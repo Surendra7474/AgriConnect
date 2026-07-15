@@ -16,6 +16,7 @@ import { useCart } from '../../contexts/CartContext';
 import { productService, productOrderService } from '../../services/productService';
 import { useTranslation } from 'react-i18next';
 import StatusChip from '../../components/StatusChip';
+import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 
 const UNIT_LABELS = { KG: 'kg', QUINTAL: 'quintal', TON: 'ton', DOZEN: 'dozen', PIECE: 'piece' };
 
@@ -32,6 +33,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentProofUrl, setPaymentProofUrl] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
   const [notes, setNotes] = useState('');
   const [ordering, setOrdering] = useState(false);
 
@@ -58,13 +60,17 @@ export default function ProductDetail() {
       toast.error('Please enter your delivery address');
       return;
     }
+    if (!paymentProofUrl.trim()) {
+      toast.error('Please upload a payment proof image');
+      return;
+    }
     setOrdering(true);
     try {
       await productOrderService.placeOrder({
         productId: product.id,
         quantity: parseFloat(quantity),
         deliveryAddress: deliveryAddress.trim(),
-        paymentProofUrl: paymentProofUrl.trim() || undefined,
+        paymentProofUrl: paymentProofUrl.trim(),
         notes: notes.trim() || undefined,
       });
       toast.success(t('order.title') + ' placed successfully!');
@@ -75,6 +81,33 @@ export default function ProductDetail() {
     } finally {
       setOrdering(false);
     }
+  };
+
+  const handleProofUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingProof(true);
+    try {
+      const res = await productOrderService.uploadPaymentProof(file);
+      const url = res.data.data?.url;
+      if (url) {
+        setPaymentProofUrl(url);
+        toast.success('Payment proof uploaded!');
+      }
+    } catch {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingProof(false);
+      e.target.value = '';
+    }
+  };
+
+  const closeOrderDialog = () => {
+    setOrderOpen(false);
+    setQuantity('');
+    setDeliveryAddress('');
+    setPaymentProofUrl('');
+    setNotes('');
   };
 
   const handleAddToCart = () => {
@@ -179,7 +212,7 @@ export default function ProductDetail() {
           </Grid>
         </Grid>
 
-        <Dialog open={orderOpen} onClose={() => setOrderOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={orderOpen} onClose={closeOrderDialog} maxWidth="sm" fullWidth>
           <DialogTitle>{t('order.title')} - {product.name}</DialogTitle>
           <DialogContent>
             <Stack spacing={3} sx={{ pt: 1 }}>
@@ -187,7 +220,41 @@ export default function ProductDetail() {
                 helperText={`Available: ${product.quantityAvailable} ${UNIT_LABELS[product.unit] || product.unit}`}
                 inputProps={{ min: 0.01, step: 0.01, max: product.quantityAvailable }} />
               <TextField label={t('order.deliveryAddress')} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} multiline rows={2} required />
-              <TextField label="Payment Proof Image URL" value={paymentProofUrl} onChange={(e) => setPaymentProofUrl(e.target.value)} multiline rows={2} placeholder="Paste the URL of your payment screenshot (UPI/bank transfer proof)" />
+              <Box>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
+                  Payment Proof Image <Typography component="span" color="error">*</Typography>
+                </Typography>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="order-payment-proof-upload"
+                  style={{ display: 'none' }}
+                  onChange={handleProofUpload}
+                />
+                <label htmlFor="order-payment-proof-upload">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    startIcon={<CloudUploadIcon />}
+                    disabled={uploadingProof}
+                  >
+                    {uploadingProof ? 'Uploading...' : paymentProofUrl ? 'Replace Image' : 'Upload Image'}
+                  </Button>
+                </label>
+                {paymentProofUrl && (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Box
+                      component="img"
+                      src={paymentProofUrl}
+                      alt="Payment proof"
+                      sx={{ maxWidth: '100%', maxHeight: 160, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}
+                    />
+                  </Box>
+                )}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  Upload a screenshot of your UPI/bank transfer as payment proof (required).
+                </Typography>
+              </Box>
               <TextField label={t('order.notes')} value={notes} onChange={(e) => setNotes(e.target.value)} multiline rows={2} />
               {quantity && parseFloat(quantity) > 0 && (
                 <Typography variant="h6" color="primary.main">
@@ -197,8 +264,8 @@ export default function ProductDetail() {
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOrderOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleOrder} variant="contained" disabled={ordering}>{ordering ? <CircularProgress size={20} /> : t('order.orderNow')}</Button>
+            <Button onClick={closeOrderDialog}>{t('common.cancel')}</Button>
+            <Button onClick={handleOrder} variant="contained" disabled={ordering || uploadingProof}>{ordering ? <CircularProgress size={20} /> : t('order.orderNow')}</Button>
           </DialogActions>
         </Dialog>
       </Container>

@@ -156,9 +156,34 @@ export default function IncomingOrders() {
                           </Typography>
                         )}
                         {order.paymentProofUrl && (
-                          <Typography variant="body2" color="info.main" sx={{ mt: 0.5 }}>
-                            Payment Proof: <a href={order.paymentProofUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>View Image</a>
-                          </Typography>
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                              Payment Proof:
+                            </Typography>
+                            <Box
+                              component="a"
+                              href={order.paymentProofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              sx={{ display: 'inline-block' }}
+                            >
+                              <Box
+                                component="img"
+                                src={order.paymentProofUrl}
+                                alt="Payment proof"
+                                sx={{
+                                  width: 96,
+                                  height: 96,
+                                  objectFit: 'cover',
+                                  borderRadius: 2,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  '&:hover': { opacity: 0.85 },
+                                }}
+                              />
+                            </Box>
+                          </Box>
                         )}
                       </Box>
                       <Stack alignItems="flex-end" spacing={1}>

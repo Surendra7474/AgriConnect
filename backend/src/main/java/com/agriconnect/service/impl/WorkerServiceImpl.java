@@ -97,10 +97,14 @@ public class WorkerServiceImpl implements WorkerService {
         WorkerProfile profile = workerProfileRepository.findByUser(currentUser).orElseGet(() -> {
             WorkerProfile newProfile = new WorkerProfile();
             newProfile.setUser(currentUser);
-            // Only set PENDING for new (first-time) profiles
-            newProfile.setApprovalStatus(WorkerApprovalStatus.PENDING);
+            // Auto-approve new worker profiles so they show up to farmers immediately
+            newProfile.setApprovalStatus(WorkerApprovalStatus.APPROVED);
             return newProfile;
         });
+        // Auto-approve existing PENDING profiles (legacy profiles created before auto-approve was enabled)
+        if (profile.getApprovalStatus() == WorkerApprovalStatus.PENDING) {
+            profile.setApprovalStatus(WorkerApprovalStatus.APPROVED);
+        }
         profile.setSkills(request.skills().trim());
         profile.setLocation(request.location().trim());
         profile.setDailyRate(request.dailyRate());

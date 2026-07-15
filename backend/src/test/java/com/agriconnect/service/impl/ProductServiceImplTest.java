@@ -188,7 +188,7 @@ class ProductServiceImplTest {
                 new UserSummaryResponse(1L, "Farmer 1", "farmer1@test.com", null, "FARMER", true, false, null, "en", Instant.now()),
                 name, "Vegetables", "Desc", BigDecimal.valueOf(50), "kg",
                 BigDecimal.valueOf(100), LocalDate.now(), "Mumbai", false, true,
-                status.name(), 0.0, List.of(), Instant.now(), Instant.now()
+                status.name(), 0.0, List.of(), null, Instant.now(), Instant.now()
         );
     }
 }
