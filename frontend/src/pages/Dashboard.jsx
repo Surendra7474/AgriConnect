@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import {
   TrendingUp, Build, People, Assessment, Feedback, ArrowForward, Agriculture, AttachMoney,
+  ShoppingCart, MoneyOff,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { equipmentService } from '../services/equipmentService';
 import { workerService } from '../services/workerService';
 import { predictionService } from '../services/predictionService';
+import { productOrderService } from '../services/productService';
 import PageHeader from '../components/PageHeader';
 import { CardSkeleton } from '../components/LoadingSkeleton';
 
@@ -19,7 +21,7 @@ export default function Dashboard() {
   const { user, isFarmer, isWorker, isEquipmentOwner, isBuyer, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ equipment: { total: 0 }, workers: { total: 0 }, predictions: { total: 0 }, earnings: { total: 0 } });
+  const [stats, setStats] = useState({ equipment: { total: 0 }, workers: { total: 0 }, predictions: { total: 0 }, earnings: { total: 0 }, orders: { total: 0 }, spent: { total: 0 } });
   const [recentBookings, setRecentBookings] = useState([]);
   const [recentHirings, setRecentHirings] = useState([]);
 
@@ -40,6 +42,8 @@ export default function Dashboard() {
           workers: { total: wkRes.data.data?.totalElements || 0 },
           predictions: { total: predRes.data.data?.totalElements || 0 },
           earnings: { total: 0 },
+          orders: { total: 0 },
+          spent: { total: 0 },
         };
 
         if (isEquipmentOwner) {
@@ -52,6 +56,13 @@ export default function Dashboard() {
           try {
             const earnRes = await workerService.getWorkerEarnings();
             baseStats.earnings.total = earnRes.data.data?.earnings || 0;
+          } catch {}
+        }
+        if (isBuyer || isEquipmentOwner || isWorker) {
+          try {
+            const statsRes = await productOrderService.getMyOrderStats();
+            baseStats.orders.total = statsRes.data.data?.totalOrders || 0;
+            baseStats.spent.total = statsRes.data.data?.totalSpent || 0;
           } catch {}
         }
 
@@ -78,7 +89,7 @@ export default function Dashboard() {
       }
     };
     fetchData();
-  }, [isFarmer, isWorker, isEquipmentOwner]);
+  }, [isFarmer, isWorker, isEquipmentOwner, isBuyer]);
 
   if (loading) return <CardSkeleton count={6} />;
 
@@ -94,17 +105,22 @@ export default function Dashboard() {
     statCards.push(
       { key: 'equipment', label: 'My Equipment', icon: Build, color: '#2d6a4f', path: '/equipment/mine' },
       { key: 'earnings', label: 'Total Earnings', icon: AttachMoney, color: '#1d3557', path: null },
+      { key: 'orders', label: 'Total Orders Placed', icon: ShoppingCart, color: '#e76f51', path: '/orders' },
+      { key: 'spent', label: 'Total Money Spent', icon: MoneyOff, color: '#1d3557', path: null },
     );
   }
   if (isWorker) {
     statCards.push(
       { key: 'workers', label: 'Available Workers', icon: People, color: '#457b9d', path: '/workers' },
       { key: 'earnings', label: 'Total Earnings', icon: AttachMoney, color: '#1d3557', path: null },
+      { key: 'orders', label: 'Total Orders Placed', icon: ShoppingCart, color: '#e76f51', path: '/orders' },
+      { key: 'spent', label: 'Total Money Spent', icon: MoneyOff, color: '#1d3557', path: null },
     );
   }
   if (isBuyer) {
     statCards.push(
-      { key: 'equipment', label: 'Browse Equipment', icon: Build, color: '#2d6a4f', path: '/equipment' },
+      { key: 'orders', label: 'Total Orders Placed', icon: ShoppingCart, color: '#e76f51', path: '/orders' },
+      { key: 'spent', label: 'Total Money Spent', icon: MoneyOff, color: '#1d3557', path: null },
     );
   }
   if (isAdmin) {
@@ -133,7 +149,7 @@ export default function Dashboard() {
                   <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                     <Box>
                       <Typography variant="h3" fontWeight={800}>
-                        {key === 'earnings'
+                        {key === 'earnings' || key === 'spent'
                           ? `₹${Number(stats[key]?.total || 0).toLocaleString()}`
                           : stats[key]?.total || 0}
                       </Typography>

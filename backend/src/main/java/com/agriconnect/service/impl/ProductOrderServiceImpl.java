@@ -8,6 +8,7 @@ import com.agriconnect.constant.RoleName;
 import com.agriconnect.dto.request.ProductOrderRequest;
 import com.agriconnect.dto.response.PageResponse;
 import com.agriconnect.dto.response.ProductOrderResponse;
+import com.agriconnect.dto.response.ProductOrderStatsResponse;
 import com.agriconnect.entity.Product;
 import com.agriconnect.entity.ProductOrder;
 import com.agriconnect.entity.User;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -181,6 +183,16 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional(readOnly = true)
     public BigDecimal sumTotalPaidAmount() {
         return productOrderRepository.sumTotalAmountByPaymentStatus(PaymentStatus.PAID);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductOrderStatsResponse getMyOrderStats() {
+        User currentUser = currentUserProvider.getCurrentUser();
+        List<OrderStatus> excludeStatuses = List.of(OrderStatus.CANCELLED, OrderStatus.REJECTED);
+        long totalOrders = productOrderRepository.countByBuyerAndStatusNotIn(currentUser, excludeStatuses);
+        BigDecimal totalSpent = productOrderRepository.sumTotalAmountByBuyerAndStatusNotIn(currentUser, excludeStatuses);
+        return new ProductOrderStatsResponse(totalOrders, totalSpent);
     }
 
     private void validateStatusTransition(OrderStatus current, OrderStatus next, boolean isBuyer, boolean isFarmerOrAdmin) {

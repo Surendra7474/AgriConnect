@@ -4,6 +4,7 @@ import com.agriconnect.constant.OrderStatus;
 import com.agriconnect.dto.request.ProductOrderRequest;
 import com.agriconnect.dto.response.PageResponse;
 import com.agriconnect.dto.response.ProductOrderResponse;
+import com.agriconnect.dto.response.ProductOrderStatsResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
@@ -25,4 +26,6 @@ public interface ProductOrderService {
     long countAllOrders();
 
     BigDecimal sumTotalPaidAmount();
+
+    ProductOrderStatsResponse getMyOrderStats();
 }

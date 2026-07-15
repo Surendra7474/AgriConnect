@@ -23,4 +23,5 @@ export const productOrderService = {
   listIncomingOrders: (params) => api.get('/product-orders/incoming', { params }),
   getById: (id) => api.get(`/product-orders/${id}`),
   updateStatus: (id, data) => api.patch(`/product-orders/${id}/status`, data),
+  getMyOrderStats: () => api.get('/product-orders/mine/stats'),
 };

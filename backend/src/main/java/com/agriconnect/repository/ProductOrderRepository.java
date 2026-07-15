@@ -28,4 +28,14 @@ public interface ProductOrderRepository extends JpaRepository<ProductOrder, Long
             where po.paymentStatus = :paymentStatus
             """)
     BigDecimal sumTotalAmountByPaymentStatus(@Param("paymentStatus") PaymentStatus paymentStatus);
+
+    long countByBuyerAndStatusNotIn(User buyer, java.util.List<OrderStatus> statuses);
+
+    @Query("""
+            select coalesce(sum(po.totalAmount), 0)
+            from ProductOrder po
+            where po.buyer = :buyer
+              and po.status not in :excludeStatuses
+            """)
+    BigDecimal sumTotalAmountByBuyerAndStatusNotIn(@Param("buyer") User buyer, @Param("excludeStatuses") java.util.List<OrderStatus> excludeStatuses);
 }

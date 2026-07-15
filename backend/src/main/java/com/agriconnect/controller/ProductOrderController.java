@@ -5,6 +5,7 @@ import com.agriconnect.dto.request.ProductOrderStatusUpdateRequest;
 import com.agriconnect.dto.response.ApiResponse;
 import com.agriconnect.dto.response.PageResponse;
 import com.agriconnect.dto.response.ProductOrderResponse;
+import com.agriconnect.dto.response.ProductOrderStatsResponse;
 import com.agriconnect.service.ProductOrderService;
 import com.agriconnect.util.ResponseFactory;
 import jakarta.validation.Valid;
@@ -43,6 +44,12 @@ public class ProductOrderController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(ResponseFactory.success("order.list.fetched", productOrderService.listMyOrders(pageable)));
+    }
+
+    @GetMapping("/mine/stats")
+    @PreAuthorize("hasAnyRole('BUYER','FARMER','EQUIPMENT_OWNER','WORKER','ADMIN')")
+    public ResponseEntity<ApiResponse<ProductOrderStatsResponse>> getMyOrderStats() {
+        return ResponseEntity.ok(ResponseFactory.success("order.stats.fetched", productOrderService.getMyOrderStats()));
     }
 
     @GetMapping("/incoming")
